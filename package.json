@@ -1,0 +1,19 @@
+{
+  "name": "form-fest-map",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "optimize-model": "node scripts/optimize-model.mjs"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "gltf-pipeline": "^4.1.0"
+  }
+}

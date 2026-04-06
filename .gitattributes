@@ -1,0 +1,11 @@
+# Normalize line endings to LF in the repo (Windows-safe)
+* text=auto eol=lf
+
+# Treat binary assets as binary (no line-ending conversion)
+*.glb binary
+*.hdr binary
+*.wasm binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary

@@ -1,0 +1,322 @@
+{
+  "locations": [
+    {
+      "id": "apse",
+      "name": "Apse",
+      "category": "stages",
+      "pinPosition": { "x": -1.662, "y": 0.15, "z": 0.915 },
+      "cameraTarget": { "x": -1.662, "y": 0, "z": 0.915 },
+      "cameraPosition": { "x": -3.0, "y": 1.8, "z": 2.2 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "HISTORY",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "title": "NEW IN 2026",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+        }
+      ],
+      "programming": [
+        { "time": "3:00PM", "artist": "ARTIST NAME" },
+        { "time": "4:00PM", "artist": "ARTIST NAME" },
+        { "time": "5:30PM", "artist": "ARTIST NAME" },
+        { "time": "7:00PM", "artist": "ARTIST NAME" },
+        { "time": "8:30PM", "artist": "ARTIST NAME" }
+      ]
+    },
+    {
+      "id": "vaults",
+      "name": "Vaults",
+      "category": "stages",
+      "pinPosition": { "x": -0.536, "y": 0.15, "z": 0.794 },
+      "cameraTarget": { "x": -0.536, "y": 0, "z": 0.794 },
+      "cameraPosition": { "x": -1.8, "y": 1.8, "z": 2.0 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "HISTORY",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "title": "NEW IN 2026",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+        }
+      ],
+      "programming": [
+        { "time": "3:00PM", "artist": "ARTIST NAME" },
+        { "time": "4:00PM", "artist": "ARTIST NAME" },
+        { "time": "5:30PM", "artist": "ARTIST NAME" },
+        { "time": "7:00PM", "artist": "ARTIST NAME" },
+        { "time": "8:30PM", "artist": "ARTIST NAME" }
+      ]
+    },
+    {
+      "id": "amphitheater",
+      "name": "Amphitheater",
+      "category": "stages",
+      "pinPosition": { "x": 0.70, "y": 0.051, "z": 0.45 },
+      "cameraTarget": { "x": 0.70, "y": 0, "z": 0.45 },
+      "cameraPosition": { "x": 1.8, "y": 2.0, "z": 1.8 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "HISTORY",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices gravida. Risus commodo viverra maecenas accumsan lacus vel facilisis."
+        },
+        {
+          "title": "NEW IN 2026",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+        }
+      ],
+      "programming": [
+        { "time": "3:00PM", "artist": "ARTIST NAME" },
+        { "time": "4:00PM", "artist": "ARTIST NAME" },
+        { "time": "5:30PM", "artist": "ARTIST NAME" },
+        { "time": "7:00PM", "artist": "ARTIST NAME" },
+        { "time": "8:30PM", "artist": "ARTIST NAME" }
+      ]
+    },
+    {
+      "id": "pool",
+      "name": "Pool",
+      "category": "stages",
+      "pinPosition": { "x": 2.64, "y": -0.25, "z": 0.78 },
+      "cameraTarget": { "x": 2.64, "y": 0, "z": 0.78 },
+      "cameraPosition": { "x": 3.8, "y": 1.5, "z": 2.0 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "HISTORY",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "title": "NEW IN 2026",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+        }
+      ],
+      "programming": [
+        { "time": "3:00PM", "artist": "ARTIST NAME" },
+        { "time": "4:00PM", "artist": "ARTIST NAME" },
+        { "time": "5:30PM", "artist": "ARTIST NAME" }
+      ]
+    },
+    {
+      "id": "envelop",
+      "name": "Envelop",
+      "category": "stages",
+      "pinPosition": { "x": -0.820, "y": 0.12, "z": -4.411 },
+      "cameraTarget": { "x": -0.820, "y": 0, "z": -4.411 },
+      "cameraPosition": { "x": 0.2, "y": 2.0, "z": -3.0 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "HISTORY",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "title": "NEW IN 2026",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+        }
+      ],
+      "programming": [
+        { "time": "3:00PM", "artist": "ARTIST NAME" },
+        { "time": "5:00PM", "artist": "ARTIST NAME" },
+        { "time": "7:00PM", "artist": "ARTIST NAME" }
+      ]
+    },
+    {
+      "id": "cafe",
+      "name": "Cafe",
+      "category": "food",
+      "pinPosition": { "x": -2.40, "y": 0.197, "z": 1.50 },
+      "cameraTarget": { "x": -2.40, "y": 0, "z": 1.50 },
+      "cameraPosition": { "x": -3.5, "y": 1.8, "z": 2.8 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "foundry",
+      "name": "Foundry",
+      "category": "food",
+      "pinPosition": { "x": -1.255, "y": 0.05, "z": 1.670 },
+      "cameraTarget": { "x": -1.255, "y": 0, "z": 1.670 },
+      "cameraPosition": { "x": -2.3, "y": 1.8, "z": 2.9 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "bodega",
+      "name": "Bodega",
+      "category": "food",
+      "pinPosition": { "x": -0.528, "y": 0.15, "z": -1.539 },
+      "cameraTarget": { "x": -0.528, "y": 0, "z": -1.539 },
+      "cameraPosition": { "x": 0.8, "y": 2.0, "z": -0.2 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "shop",
+      "name": "Shop",
+      "category": "shop",
+      "pinPosition": { "x": -0.71, "y": 0.25, "z": 0.01 },
+      "cameraTarget": { "x": -0.71, "y": 0, "z": 0.01 },
+      "cameraPosition": { "x": 0.5, "y": 2.0, "z": 1.5 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "camping",
+      "name": "Camping",
+      "category": "camping",
+      "pinPosition": { "x": -5.31, "y": 0.12, "z": -6.51 },
+      "cameraTarget": { "x": -5.31, "y": 0, "z": -6.51 },
+      "cameraPosition": { "x": -4.0, "y": 2.0, "z": -5.0 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "glamping-rvs",
+      "name": "Glamping RVs",
+      "category": "camping",
+      "pinPosition": { "x": -2.675, "y": 0.12, "z": -5.237 },
+      "cameraTarget": { "x": -2.675, "y": 0, "z": -5.237 },
+      "cameraPosition": { "x": -1.3, "y": 1.8, "z": -3.8 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "glamping",
+      "name": "Glamping",
+      "category": "camping",
+      "pinPosition": { "x": -0.17, "y": 0.12, "z": -2.228 },
+      "cameraTarget": { "x": -0.17, "y": 0, "z": -2.228 },
+      "cameraPosition": { "x": 1.2, "y": 2.0, "z": -0.8 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "restrooms-1",
+      "name": "Restrooms",
+      "category": "restrooms",
+      "pinPosition": { "x": -2.512, "y": 0.088, "z": 0.082 },
+      "cameraTarget": { "x": -2.512, "y": 0, "z": 0.082 },
+      "cameraPosition": { "x": -3.8, "y": 1.8, "z": 1.4 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "INFO",
+          "body": "Restroom facilities available during festival hours."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "restrooms-2",
+      "name": "Restrooms",
+      "category": "restrooms",
+      "pinPosition": { "x": 0.888, "y": 0.088, "z": -0.833 },
+      "cameraTarget": { "x": 0.888, "y": 0, "z": -0.833 },
+      "cameraPosition": { "x": 2.2, "y": 1.8, "z": 0.5 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "INFO",
+          "body": "Restroom facilities available during festival hours."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "guest-services",
+      "name": "Guest Services",
+      "category": "guest-services",
+      "pinPosition": { "x": -1.165, "y": 0.15, "z": -0.926 },
+      "cameraTarget": { "x": -1.165, "y": 0, "z": -0.926 },
+      "cameraPosition": { "x": 0.2, "y": 2.0, "z": 0.5 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "bar-1",
+      "name": "Bar",
+      "category": "bars",
+      "pinPosition": { "x": -1.115, "y": 0.083, "z": 0.395 },
+      "cameraTarget": { "x": -1.115, "y": 0, "z": 0.395 },
+      "cameraPosition": { "x": -2.3, "y": 1.8, "z": 1.6 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "bar-2",
+      "name": "Bar",
+      "category": "bars",
+      "pinPosition": { "x": -0.084, "y": 0.076, "z": -0.716 },
+      "cameraTarget": { "x": -0.084, "y": 0, "z": -0.716 },
+      "cameraPosition": { "x": 1.2, "y": 1.8, "z": 0.6 },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build output (Vercel builds this itself — don't commit)
+dist/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+
+# Claude Code session data (local only, not needed in repo)
+.claude/
+
+# Source files too large for Git (keep in local storage / shared drive)
+3d map/
+Design UI/
