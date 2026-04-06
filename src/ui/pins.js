@@ -185,7 +185,7 @@ export function renderPins(scene, camera) {
     // Use transform for positioning (GPU-composited, avoids layout thrash).
     // First translate positions the pin point, second centers the label above it.
     el.style.display = '';
-    el.style.transform = `translate(${sx}px, ${sy}px) translate(-50%, calc(-100% - 1.5rem))`;
+    el.style.transform = `translate(${sx}px, ${sy}px) translate(-50%, calc(-100% - 1.5rem - 30px))`;
   });
 }
 
