@@ -232,7 +232,19 @@ html, body {
   gap: var(--space-xs);
   padding: var(--space-sm);
   padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom));
+  /* No background here — gradient lives in ::before so buttons can see
+     through to the canvas and backdrop-filter actually blurs the scene */
+  background: transparent;
+}
+
+/* Gradient scrim sits behind the buttons, doesn't block backdrop-filter */
+#categories-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 70%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .cat-btn {
@@ -241,8 +253,8 @@ html, body {
   justify-content: center;
   border: none;
   background: rgba(200, 192, 180, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--color-btn-default-text);
   font-family: var(--font-ui);
   font-size: clamp(0.6rem, 2vw, 0.75rem);
@@ -282,13 +294,19 @@ html, body {
   -webkit-backdrop-filter: none;
 }
 
-/* Dim inactive buttons when any category is selected */
+/* Inactive buttons when a category is selected: frosted glass effect.
+   Drop background opacity way down so the blurred scene shows through,
+   keep text visible via a slight text-shadow, no whole-element opacity fade. */
 #categories-bar.has-active .cat-btn:not(.active) {
-  opacity: 0.45;
+  background: rgba(200, 192, 180, 0.15);
+  color: rgba(26, 26, 26, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 #categories-bar.has-active .cat-btn:not(.active):hover {
-  opacity: 0.75;
+  background: rgba(200, 192, 180, 0.30);
+  color: rgba(26, 26, 26, 0.8);
 }
 
 /* --- Pin Labels (manual projection) --- */
@@ -378,11 +396,29 @@ html, body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  transition: opacity var(--transition-normal);
   overflow: hidden;
+
+  /* Stacked entrance: backdrop fades in */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.35s;
+  will-change: opacity;
 }
 
-/* Fullscreen modal on mobile */
+#modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0s;
+}
+
+/* Fullscreen modal on mobile — layout only; overrides (box-shadow, padding) are
+   at the bottom of the file so they cascade after the base rules */
 @media (max-width: 767px) {
   #modal-overlay {
     align-items: stretch;
@@ -390,15 +426,10 @@ html, body {
   #modal {
     max-width: 100%;
     max-height: 100dvh;
+    max-height: 100vh;
     height: 100dvh;
-    border-radius: 0;
-    box-shadow: none;
+    height: 100vh;
   }
-}
-
-#modal-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
 }
 
 #modal {
@@ -406,19 +437,70 @@ html, body {
   max-width: 34rem;
   max-height: 90vh;
   background: var(--color-bg-modal);
-  border-radius: 1rem 1rem 0 0;
-  /* overflow: hidden clips the scrollbar within the rounded corners */
-  overflow: hidden;
+  border-radius: 0;
+  /* clip instead of hidden: visually masks corners without creating a new scroll
+     container, so child translateY animations aren't clipped mid-flight */
+  overflow: clip;
   display: flex;
   flex-direction: column;
   overscroll-behavior: contain;
-  transform: translateY(0);
-  transition: transform var(--transition-normal);
   box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.35), 0 -2px 12px rgba(0, 0, 0, 0.15);
+
+  /* 1. Panel slides up after backdrop settles */
+  transform: translateY(100%);
+  opacity: 0;
+  transition:
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+    opacity   0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
+  will-change: transform, opacity;
 }
 
-#modal-overlay.hidden #modal {
-  transform: translateY(100%);
+#modal-overlay.open #modal {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* 2. Header fades + rises after panel lands */
+#modal .modal-header {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity   0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.42s,
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.42s;
+  will-change: opacity, transform;
+}
+
+#modal-overlay.open #modal .modal-header {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 3. Body fades + rises last */
+#modal .modal-body {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity   0.45s cubic-bezier(0.4, 0, 0.2, 1) 0.62s,
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.62s;
+  will-change: opacity, transform;
+}
+
+#modal-overlay.open #modal .modal-body {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Exit: snap everything down quickly, no stagger */
+#modal-overlay:not(.open) #modal {
+  transition:
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity   0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#modal-overlay:not(.open) #modal .modal-header,
+#modal-overlay:not(.open) #modal .modal-body {
+  transition:
+    opacity   0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-header {
@@ -600,12 +682,21 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Responsive: Mobile perf — reduce expensive backdrop blur --- */
+/* --- Responsive: Mobile perf --- */
 @media (max-width: 767px) {
   .cat-btn,
   #lighting-toggle {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Modal: no shadow (no top line), and pad only for actual device safe area */
+  #modal {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .modal-body {
+    padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
   }
 }
 
