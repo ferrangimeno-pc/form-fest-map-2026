@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="FORM Fest 2026 — Interactive Site Map" />
+  <title>FORM 2026 — Site Map</title>
+  <!--
+    Fonts: Montserrat variable (100–900) loaded here for standalone use.
+    When embedded in experienceform.com, the parent page already loads these —
+    the browser cache deduplicates the request automatically.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loader">
+    <div class="loader-content">
+      <div class="loader-bar-track">
+        <div class="loader-bar-fill" id="loader-bar"></div>
+      </div>
+      <div class="loader-text" id="loader-text">Loading map...</div>
+    </div>
+  </div>
+
+  <!-- Map Container -->
+  <div id="map-container">
+    <!-- 3D Canvas injected by Three.js -->
+    <!-- CSS2D Overlay for pins injected by Three.js -->
+
+    <!-- Cinematic vignette overlay -->
+    <div id="vignette-overlay"></div>
+
+    <!-- Lighting Toggle (top-right) -->
+    <div id="lighting-toggle">
+      <button class="light-btn active" data-mode="live" title="Current time">
+        <span class="light-icon">🕐</span>
+        <span class="light-label" id="live-time-label">--:--</span>
+      </button>
+      <button class="light-btn" data-mode="day" title="Day (12 PM)">
+        <span class="light-icon">☀️</span>
+        <span class="light-label">DAY</span>
+      </button>
+      <button class="light-btn" data-mode="night" title="Night (12 AM)">
+        <span class="light-icon">🌙</span>
+        <span class="light-label">NIGHT</span>
+      </button>
+    </div>
+
+    <!-- Category Buttons (bottom) -->
+    <div id="categories-bar">
+      <!-- Populated by JS from config -->
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="modal-overlay" class="hidden">
+      <div id="modal">
+        <div class="modal-header">
+          <button id="modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+    <!-- DEV: HDRI Controls Panel — stripped from production build by Vite tree-shaking -->
+    <div id="hdri-panel" class="dev-panel hidden">
+      <div class="dev-panel-header">
+        <span>HDRI Controls (DEV)</span>
+        <button id="hdri-panel-toggle">☰</button>
+      </div>
+      <div class="dev-panel-body" id="hdri-panel-body"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

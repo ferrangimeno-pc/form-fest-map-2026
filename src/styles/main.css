@@ -1,0 +1,718 @@
+/* ============================================
+   FORM Fest 2026 — Interactive Map Styles
+   ============================================ */
+
+/* --- CSS Variables (Design Tokens) --- */
+:root {
+  /* Brand */
+  --color-brand: #FF4500;
+  --color-brand-dark: #CC3700;
+
+  /* Backgrounds */
+  --color-bg-modal: #F5F0E8;
+  --color-bg-loader: #1A1A1A;
+
+  /* Text */
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #666666;
+  --color-text-light: #FFFFFF;
+
+  /* UI */
+  --color-btn-default: #C8C0B4;
+  --color-btn-default-text: #1A1A1A;
+
+  /* Category Colors */
+  --color-cat-stages: #FF6B35;
+  --color-cat-food: #8BC34A;
+  --color-cat-shop: #4A90A4;
+  --color-cat-camping: #F5C842;
+  --color-cat-restrooms: #4A90D9;
+  --color-cat-guest-services: #E53935;
+  --color-cat-bars: #E91E90;
+  --color-cat-misc: #9E9E9E;
+
+  /* Typography — Montserrat matches experienceform.com.
+     The parent page already loads it; browser cache deduplicates.
+     Override these vars from the parent to remap if needed. */
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body:    'Montserrat', sans-serif;
+  --font-ui:      'Montserrat', sans-serif;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+
+  /* Z-index layers */
+  --z-canvas: 1;
+  --z-pins: 10;
+  --z-ui: 100;
+  --z-modal: 200;
+  --z-loader: 300;
+}
+
+/* --- Standalone page base ---
+   Only applied when the map IS the full page (not embedded in a host).
+   Prevents the body scrollbar and white flash behind the canvas. */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  background: #1A1A1A; /* matches loader bg; neutral dark for any pre-render gap */
+}
+
+/* --- Reset (scoped to map, zero specificity via :where) ---
+   :where() always has specificity 0, so component class rules always win.
+   Avoids leaking into the host page's global styles. */
+:where(#map-container, #loader) :where(*, *::before, *::after) {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#map-container {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Map Container ---
+   Fills the viewport when used standalone.
+   When embedded in a host page, override height via the parent element:
+   e.g.  #map-container { height: 600px; }  or  aspect-ratio: 16/9; */
+#map-container {
+  position: relative;
+  width: 100%;
+  height: 100dvh; /* 100dvh accounts for mobile browser chrome (address bar) */
+  overflow: hidden;
+  background: #6b5a45;
+}
+
+#map-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--z-canvas);
+  touch-action: none;
+  outline: none; /* prevent browser focus ring (blue/cyan frame) */
+}
+
+/* Cinematic vignette overlay */
+#vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(
+    ellipse 70% 65% at 50% 45%,
+    transparent 0%,
+    transparent 40%,
+    rgba(20, 15, 10, 0.25) 70%,
+    rgba(10, 8, 5, 0.6) 100%
+  );
+}
+
+/* --- Loading Screen --- */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-loader);
+  background: var(--color-bg-loader);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease;
+}
+
+#loader.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-content {
+  text-align: center;
+  width: min(80%, 20rem);
+}
+
+.loader-bar-track {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loader-bar-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--color-brand);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.loader-text {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: var(--space-sm);
+  letter-spacing: 0.08em;
+}
+
+/* --- Lighting Toggle (top-right) --- */
+#lighting-toggle {
+  position: absolute;
+  top: max(var(--space-md), env(safe-area-inset-top));
+  right: max(var(--space-md), env(safe-area-inset-right));
+  z-index: var(--z-ui);
+  display: flex;
+  gap: var(--space-xs);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 2rem;
+  padding: 0.2rem;
+}
+
+.light-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.55rem 0.6rem; /* min ~44px touch target height */
+  border-radius: 1.5rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  min-height: 2.75rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.light-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.light-btn.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.light-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.light-label {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Category Buttons (bottom bar) --- */
+#categories-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-ui);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 70%, transparent 100%);
+}
+
+.cat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(200, 192, 180, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--color-btn-default-text);
+  font-family: var(--font-ui);
+  font-size: clamp(0.6rem, 2vw, 0.75rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.6rem 0.5rem;
+  border-radius: 1.25rem;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-normal),
+    color var(--transition-fast),
+    opacity var(--transition-normal),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  min-height: 2.5rem;
+  text-align: center;
+  line-height: 1.2;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cat-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.cat-btn:active {
+  transform: translateY(0);
+}
+
+.cat-btn.active {
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Dim inactive buttons when any category is selected */
+#categories-bar.has-active .cat-btn:not(.active) {
+  opacity: 0.45;
+}
+
+#categories-bar.has-active .cat-btn:not(.active):hover {
+  opacity: 0.75;
+}
+
+/* --- Pin Labels (manual projection) --- */
+/* Positioned entirely via transform in JS (GPU-composited). */
+.pin-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #FFFFFF;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+  user-select: none;
+  /* transform is set by JS: translate(Xpx, Ypx) translate(-50%, calc(-100% - 1.5rem)) */
+  /* Hint both transform (JS positioning) and opacity + translate (CSS animations)
+     so the browser pre-promotes this to a dedicated compositor layer. */
+  will-change: transform, opacity, translate;
+  /* Force GPU layer creation immediately — prevents layer promotion
+     from happening mid-animation (which causes the jank). */
+  backface-visibility: hidden;
+}
+
+.pin-label::after {
+  content: '';
+  position: absolute;
+  bottom: -1.5rem;
+  left: 50%;
+  margin-left: -0.75px;
+  width: 1.5px;
+  height: 1.5rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.pin-label:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover pin animations
+   JS owns `transform` on .pin-label for screen-space positioning (set every frame).
+   Animations use the CSS standalone `translate` property instead — it composites
+   on top of `transform` with no conflict, so the whole pin (label + ::after stem)
+   slides and fades without disturbing the JS-driven coordinates. */
+@keyframes _pinEnter {
+  from { translate: 0 10px; opacity: 0; }
+  to   { translate: 0 0;    opacity: 1; }
+}
+
+@keyframes _pinLeave {
+  from { translate: 0 0;   opacity: 1; }
+  to   { translate: 0 6px; opacity: 0; }
+}
+
+.pin-label--hover {
+  animation: _pinEnter 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Text fades in 0.2s after the pin finishes.
+   fill-mode: backwards holds opacity:0 during the delay so the chip
+   appears empty while entering, then the text reveals itself. */
+.pin-label--hover .pin-label__text {
+  animation: _pinTextEnter 0.2s ease-out 0.22s both;
+}
+
+@keyframes _pinTextEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pin-label--leaving {
+  animation: _pinLeave 0.16s ease-in forwards;
+  pointer-events: none;
+}
+
+/* --- Modal Overlay --- */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transition: opacity var(--transition-normal);
+  overflow: hidden;
+}
+
+/* Fullscreen modal on mobile */
+@media (max-width: 767px) {
+  #modal-overlay {
+    align-items: stretch;
+  }
+  #modal {
+    max-width: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+#modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#modal {
+  width: 100%;
+  max-width: 34rem;
+  max-height: 90vh;
+  background: var(--color-bg-modal);
+  border-radius: 1rem 1rem 0 0;
+  /* overflow: hidden clips the scrollbar within the rounded corners */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: contain;
+  transform: translateY(0);
+  transition: transform var(--transition-normal);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.35), 0 -2px 12px rgba(0, 0, 0, 0.15);
+}
+
+#modal-overlay.hidden #modal {
+  transform: translateY(100%);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--space-md) 3.75rem;
+  flex-shrink: 0; /* stays fixed while body scrolls */
+  background: var(--color-bg-modal);
+  z-index: 1;
+}
+
+#modal-close {
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  outline: none;
+  transition: opacity var(--transition-fast);
+}
+
+#modal-close:focus,
+#modal-close:focus-visible {
+  outline: none;
+}
+
+#modal-close:hover {
+  opacity: 0.6;
+}
+
+.modal-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0; /* required for flex child to scroll */
+  padding: 0 3.75rem max(var(--space-xl), env(safe-area-inset-bottom));
+}
+
+/* Custom scrollbar — thin, neutral, stays inside the modal's rounded corners */
+.modal-body::-webkit-scrollbar {
+  width: 4px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.32);
+}
+/* Firefox */
+.modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 7vw, 3rem);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  margin-bottom: var(--space-lg);
+}
+
+.modal-photo {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin-bottom: var(--space-lg);
+  background: #D4CFC7;
+}
+
+.modal-section {
+  margin-bottom: var(--space-lg);
+}
+
+.modal-section-title {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.modal-section-body {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.modal-schedule {
+  list-style: none;
+}
+
+.modal-schedule li {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.2rem 0;
+  color: var(--color-text-primary);
+}
+
+.modal-schedule-time {
+  font-weight: 600;
+  display: inline-block;
+  min-width: 5rem;
+}
+
+/* --- DEV: HDRI Controls Panel --- */
+.dev-panel {
+  position: absolute;
+  top: 4rem;
+  right: var(--space-md);
+  z-index: var(--z-ui);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 0.5rem;
+  color: #FFFFFF;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  min-width: 14rem;
+  overflow: hidden;
+}
+
+.dev-panel.hidden .dev-panel-body {
+  display: none;
+}
+
+.dev-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.dev-panel-header button {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.dev-panel-body {
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+
+.dev-control {
+  margin-bottom: var(--space-sm);
+}
+
+.dev-control label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.15rem;
+  opacity: 0.7;
+}
+
+.dev-control input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-brand);
+}
+
+.dev-control-value {
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Responsive: Mobile perf — reduce expensive backdrop blur --- */
+@media (max-width: 767px) {
+  .cat-btn,
+  #lighting-toggle {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+/* --- Responsive: Tablet+ --- */
+@media (min-width: 768px) {
+  #categories-bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 56rem; /* fits all 8 buttons at ~7rem each */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--space-md);
+    background: none;
+    gap: var(--space-xs);
+  }
+
+  .cat-btn {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  #modal {
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    max-height: 85vh;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45), 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  #modal-overlay {
+    align-items: center;
+  }
+}
+
+/* --- Responsive: Desktop --- */
+@media (min-width: 1024px) {
+  #categories-bar {
+    max-width: 64rem;
+    flex-wrap: nowrap; /* single row on desktop — always enough width */
+  }
+
+  .cat-btn {
+    padding: 0.7rem 1rem;
+  }
+}
+
+/* --- Responsive: Landscape phone (short screens) --- */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Single scrollable row — frees up vertical space for the 3D map */
+  #categories-bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center; /* center buttons when they all fit */
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    padding-bottom: max(var(--space-xs), env(safe-area-inset-bottom));
+    padding-left: max(var(--space-sm), env(safe-area-inset-left));
+    padding-right: max(var(--space-sm), env(safe-area-inset-right));
+    background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%);
+    /* Prevent centering from breaking scroll on overflow */
+    min-width: 0;
+  }
+
+  #categories-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cat-btn {
+    flex: 0 0 auto;
+    font-size: 0.6rem;
+    padding: 0.4rem 0.65rem;
+    min-height: 2.2rem;
+  }
+
+  /* Smaller toggle in landscape */
+  .light-btn {
+    font-size: 0.6rem;
+    padding: 0.4rem 0.5rem;
+    min-height: 2.2rem;
+  }
+
+  /* Cap modal height so it doesn't fill the whole short screen */
+  #modal {
+    max-height: 80vh;
+  }
+}
+
+/* --- Utility --- */
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

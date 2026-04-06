@@ -1,0 +1,273 @@
+import * as THREE from 'three';
+import { initEngine } from './scene/engine.js';
+import { loadModel, getMeshNames, getMesh, highlightMeshes, restoreAllMeshes, dimMeshesExcept } from './scene/model.js';
+import { initWater, updateWater, updateWaterLighting } from './scene/water.js';
+import { initLighting, updateLighting, getSunLight, getCurrentMode, LIGHT_MODES, setExposure } from './scene/lighting.js';
+import { initControls, updateControls, flyTo, resetCamera, getControls } from './scene/controls.js';
+import { initPostProcessing, renderPostProcessing, updateBloomForDistance, setCategoryBloom, tickBloomLerp } from './scene/postprocessing.js';
+import { updateProgress, hideLoader } from './ui/loader.js';
+import { initCategories } from './ui/categories.js';
+import { initPinRenderer, showPins, hidePins, renderPins } from './ui/pins.js';
+import { initModal, openModal } from './ui/modal.js';
+import { initLightingToggle } from './ui/lightingToggle.js';
+import { initRaycast, updateRaycast, clearHoverState } from './ui/raycast.js';
+import { setActiveCategory } from './ui/categories.js';
+// DEV-only imports — tree-shaken out of production builds
+let initHdriPanel = null;
+let initMeshLabels = null;
+if (import.meta.env.DEV) {
+  ({ initHdriPanel } = await import('./ui/hdriPanel.js'));
+  ({ initMeshLabels } = await import('./ui/devMeshLabels.js'));
+}
+import { CATEGORIES } from './config/categories.js';
+import { MODEL_MAP, getObjectsForLocation } from './config/modelMap.js';
+import locationsData from './data/locations.json';
+
+const container = document.getElementById('map-container');
+
+async function init() {
+  // 1. Initialize engine (renderer, scene, camera)
+  const { renderer, scene, camera, isWebGPU } = await initEngine(container);
+
+  // 2. Initialize controls
+  initControls(camera, renderer.domElement);
+
+  // 3. Initialize pin overlay + dev mesh label overlay
+  initPinRenderer(container);
+  if (import.meta.env.DEV) initMeshLabels?.(container);
+
+  // 4. Load model + HDRI in parallel
+  const [model] = await Promise.all([
+    loadModel(scene, (p) => updateProgress('model', p)),
+    initLighting(scene, renderer, (p) => updateProgress('hdri', p)),
+  ]);
+
+  // 5. Initialize post-processing (bloom + grain)
+  initPostProcessing(renderer, scene, camera);
+
+  // 5b. Animated water on the pool surface
+  initWater(getMesh);
+
+  // DEV-only: mesh name logging, scene + camera globals for console debugging
+  if (import.meta.env.DEV) {
+    console.log('[Main] Available mesh names for modelMap.js:', getMeshNames());
+    window.__debugScene = scene;
+    window.__debugCamera = camera;
+    window.__debugRenderer = renderer;
+    model.traverse((child) => {
+      if (child.isMesh) {
+        const box = new THREE.Box3().setFromObject(child);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z);
+        if (maxDim > 3) {
+          console.warn(`[Debug] Large mesh: "${child.name}" — size: ${size.x.toFixed(1)} x ${size.y.toFixed(1)} x ${size.z.toFixed(1)}`);
+        }
+      }
+    });
+  }
+
+  // 6. Building hover + click raycasting
+  initRaycast(container, scene, camera, locationsData, (locationId) => {
+    const location = locationsData.locations.find((l) => l.id === locationId);
+    if (!location) return;
+
+    // Select the category if not already active, then open the modal
+    setActiveCategory(location.category);
+    handleCategoryChange(location.category, scene, camera, renderer);
+    openModal(location);
+  });
+
+  // 7. Hide loader
+  hideLoader();
+
+  // 7. Initialize UI
+  initModal();
+  initLightingToggle(renderer);
+  if (import.meta.env.DEV) initHdriPanel?.(renderer, { sunLight: getSunLight() });
+
+  // 8. Initialize categories with interaction handler
+  initCategories((categoryId) => {
+    handleCategoryChange(categoryId, scene, camera, renderer);
+  });
+
+  // 9. Start render loop
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const dt = clock.getDelta();
+    const elapsed = clock.elapsedTime;
+
+    updateControls(dt);
+    updateRaycast();
+    updateLighting(dt, renderer);
+    updateWater(elapsed);
+    updateWaterLighting(getSunLight());
+
+    // Smoothly lerp bloom between normal/category states, then scale by distance
+    tickBloomLerp(dt);
+    const camDist = camera.position.distanceTo(getControls().target);
+    updateBloomForDistance(camDist, dt);
+
+    renderPostProcessing(elapsed);
+
+    // Update pin positions AFTER the main render.
+    // The composer's render pass updates camera matrices,
+    // so projecting with the camera now gives exact screen positions.
+    renderPins(scene, camera);
+  }
+  animate();
+
+  // Pin positions are updated every frame in the animation loop (after renderer.render()),
+  // which keeps camera matrices fully in sync. No separate change listener needed.
+}
+
+/**
+ * Handle category selection: highlight objects, show pins, fly camera.
+ */
+function handleCategoryChange(categoryId, scene, camera, renderer) {
+  // Clear hover state first (restores saved materials, removes hover pin)
+  clearHoverState();
+  // Reset everything (restoreAllMeshes also clears any hover emissive state)
+  restoreAllMeshes();
+  hidePins(scene);
+
+  if (!categoryId) {
+    // No category selected — reset to overview
+    setCategoryBloom(false);
+    if (getCurrentMode() === LIGHT_MODES.NIGHT) setExposure(renderer, 0.72);
+    resetCamera(camera);
+    return;
+  }
+
+  // Get category config
+  const category = CATEGORIES.find((c) => c.id === categoryId);
+  if (!category) return;
+
+  // Get locations for this category
+  const locations = locationsData.locations.filter((loc) => loc.category === categoryId);
+  if (locations.length === 0) return;
+
+  // Highlight 3D objects
+  const allObjectNames = [];
+  locations.forEach((loc) => {
+    const objNames = getObjectsForLocation(loc.id);
+    allObjectNames.push(...objNames);
+    highlightMeshes(objNames, category.highlightColor);
+  });
+
+  // Dim non-highlighted objects and adjust bloom to compensate.
+  // Night mode: scene is already dark — skip dimming and don't reduce bloom
+  // (bloom is what keeps the night scene readable; reducing it causes near-blackout).
+  // Stages + Camping cover large areas and zoom out far — boost exposure in night mode
+  // so the wider view stays readable.
+  const NIGHT_EXPOSURE_BOOST_CATEGORIES = new Set(['stages', 'camping']);
+  if (allObjectNames.length > 0) {
+    const isNight = getCurrentMode() === LIGHT_MODES.NIGHT;
+    if (!isNight) {
+      dimMeshesExcept(allObjectNames);
+    } else if (NIGHT_EXPOSURE_BOOST_CATEGORIES.has(categoryId)) {
+      setExposure(renderer, 1.2);
+    } else {
+      setExposure(renderer, 0.72); // restore normal night exposure for other categories
+    }
+    setCategoryBloom(!isNight);
+  }
+
+  // Pre-compile all new materials now so no shader stutter hits mid-frame
+  renderer.compile(scene, camera);
+
+  // Show pin labels
+  showPins(locations, scene, (locationId) => {
+    // Pin clicked → open modal
+    const location = locationsData.locations.find((l) => l.id === locationId);
+    if (location) {
+      openModal(location);
+    }
+  });
+
+  // Auto-zoom camera to fit ALL pins for this category
+  _fitCameraToLocations(locations, camera);
+}
+
+/**
+ * Compute a camera position that fits all location pins into view.
+ */
+function _fitCameraToLocations(locations, camera) {
+  if (locations.length === 0) return;
+
+  if (locations.length === 1) {
+    // Single location: fly to its preset camera position
+    flyTo(camera, {
+      position: locations[0].cameraPosition,
+      target: locations[0].cameraTarget,
+    });
+    return;
+  }
+
+  // Multiple locations: compute bounding box of all pinPositions
+  let minX = Infinity, maxX = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  locations.forEach(({ pinPosition }) => {
+    minX = Math.min(minX, pinPosition.x);
+    maxX = Math.max(maxX, pinPosition.x);
+    minZ = Math.min(minZ, pinPosition.z);
+    maxZ = Math.max(maxZ, pinPosition.z);
+  });
+
+  const centerX = (minX + maxX) / 2;
+  const centerZ = (minZ + maxZ) / 2;
+  const spanX   = maxX - minX;
+  const spanZ   = maxZ - minZ;
+
+  // Measure category bar height for viewport compensation.
+  const barEl   = document.getElementById('categories-bar');
+  const barH    = barEl ? barEl.getBoundingClientRect().height : 100;
+  const screenH = window.innerHeight;
+  const barFraction = Math.min(barH / screenH, 0.45);
+
+  // Camera distance: pull back proportionally so all pins fit in the available viewport.
+  const span            = Math.max(spanX, spanZ, 1.5);
+  const barCompensation = 1 / (1 - barFraction);
+  const distance        = Math.min(Math.max(span * 1.7 * barCompensation + 2, 4), 14);
+
+  // --- Screen-space horizontal centering ---
+  // For our 45° NE camera, screen-right direction in world XZ = (-1/√2, 0, +1/√2).
+  // A pin's screen-X position is proportional to (z - x).
+  // The world-XZ center doesn't always match the screen-X center (e.g. when one
+  // pin is far in -Z like Envelop, it swings the screen-X balance sideways).
+  const screenXVals = locations.map(({ pinPosition: p }) => p.z - p.x);
+  const screenXCtr  = (Math.min(...screenXVals) + Math.max(...screenXVals)) / 2;
+  const worldCtrSX  = centerZ - centerX; // world-XZ center's screen-X
+  const sxOffset    = screenXCtr - worldCtrSX;
+
+  // Shift target in screen-right direction to align horizontal center of pins with screen center.
+  // Moving target by (adjX, adjZ) = s*(-1/√2, +1/√2) changes screen-X by sxOffset.
+  const adjX = -sxOffset / 2;
+  const adjZ = +sxOffset / 2;
+
+  // --- Vertical compensation for bottom bar ---
+  // Shift target toward camera in XZ (+0.707, +0.707) — perpendicular to screen-right
+  // so it doesn't disturb the horizontal centering. This pushes pins upward on screen.
+  const barVertOffset = barFraction * distance * 0.35;
+  const targetX = centerX + adjX + barVertOffset * 0.707;
+  const targetZ = centerZ + adjZ + barVertOffset * 0.707;
+
+  // Camera positioned relative to the corrected target (keeps exact 45° NE view angle).
+  const camX = targetX + distance * 0.5;
+  const camY = distance * 0.9;
+  const camZ = targetZ + distance * 0.5;
+
+  flyTo(camera, {
+    position: { x: camX, y: camY, z: camZ },
+    target:   { x: targetX, y: 0, z: targetZ },
+  });
+}
+
+// Boot
+init().catch((err) => {
+  console.error('[Main] Initialization failed:', err);
+  const textEl = document.getElementById('loader-text');
+  if (textEl) textEl.textContent = 'Failed to load map. Please refresh.';
+});
