@@ -9,6 +9,9 @@ export const MODEL_MAP = {
   'Roundcube001': 'apse',
   'Cylinder001':  'amphitheater',
   'Cylinder':     'amphitheater',   // inner cylinder of amphitheater bowl
+  'Cube001_1':    'amphitheater',   // adjacent building — grouped to reduce hover glitch
+  'Cube001_2':    'amphitheater',
+  'Cube001_3':    'amphitheater',
   'Plane':      'pool',        // blue water surface of the pool
   'Cube002_1':  'pool',        // pool building structure
   'Cube002_2':  'pool',

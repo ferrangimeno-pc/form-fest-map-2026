@@ -27,6 +27,13 @@ let _onBuildingClick = null;
 let hoveredLocationId = null;
 let _hoverPinShown    = false;
 
+// Hover stabiliser — only commit to a new hover target after it is hit
+// HOVER_HOLD_FRAMES consecutive frames. Prevents 1-frame flicker when the
+// cursor grazes a mesh edge between two locations.
+const HOVER_HOLD_FRAMES = 2;
+let _hoverCandidate      = null; // locationId being considered
+let _hoverCandidateCount = 0;    // consecutive frames it has been hit
+
 // Only raycast when the mouse actually moves
 let _mouseDirty = false;
 let _lastMouseX = 0;
@@ -75,8 +82,21 @@ export function updateRaycast() {
   if (!_mouseDirty) return;
   _mouseDirty = false;
 
-  const hit   = _raycastLocation(_lastMouseX, _lastMouseY, _lastClientX, _lastClientY);
-  const newId = hit?.locationId ?? null;
+  const hit       = _raycastLocation(_lastMouseX, _lastMouseY, _lastClientX, _lastClientY);
+  const rawId     = hit?.locationId ?? null;
+
+  // ── Hover stabiliser ────────────────────────────────────────────────────────
+  // Only commit to a new location after HOVER_HOLD_FRAMES consecutive hits.
+  // Single-frame edge grazes are ignored, eliminating the jump/flicker.
+  if (rawId === _hoverCandidate) {
+    _hoverCandidateCount++;
+  } else {
+    _hoverCandidate      = rawId;
+    _hoverCandidateCount = 1;
+  }
+
+  const newId = _hoverCandidateCount >= HOVER_HOLD_FRAMES ? rawId : hoveredLocationId;
+  // ────────────────────────────────────────────────────────────────────────────
 
   if (newId !== hoveredLocationId) {
     if (hoveredLocationId) _clearHover(hoveredLocationId);

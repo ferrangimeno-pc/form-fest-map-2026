@@ -237,15 +237,6 @@ html, body {
   background: transparent;
 }
 
-/* Gradient scrim sits behind the buttons, doesn't block backdrop-filter */
-#categories-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 70%, transparent 100%);
-  pointer-events: none;
-  z-index: -1;
-}
 
 .cat-btn {
   display: flex;
@@ -327,7 +318,7 @@ html, body {
   pointer-events: auto;
   white-space: nowrap;
   user-select: none;
-  /* transform is set by JS: translate(Xpx, Ypx) translate(-50%, calc(-100% - 1.5rem)) */
+  /* transform is set by JS: translate(Xpx, Ypx) translate(-50%, calc(-100% - 1.5rem - 30px)) */
   /* Hint both transform (JS positioning) and opacity + translate (CSS animations)
      so the browser pre-promotes this to a dedicated compositor layer. */
   will-change: transform, opacity, translate;
@@ -339,11 +330,11 @@ html, body {
 .pin-label::after {
   content: '';
   position: absolute;
-  bottom: -1.5rem;
+  bottom: calc(-1.5rem - 30px);
   left: 50%;
   margin-left: -0.75px;
   width: 1.5px;
-  height: 1.5rem;
+  height: calc(1.5rem + 30px);
   background: rgba(255, 255, 255, 0.7);
 }
 
