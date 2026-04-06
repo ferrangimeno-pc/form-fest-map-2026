@@ -225,6 +225,7 @@ function applyPreset(preset, renderer) {
   // Update fog density and color
   if (_scene?.fog && preset.fogDensity !== undefined) {
     _scene.fog.density = preset.fogDensity;
+    _scene.fog._baseDensity = preset.fogDensity; // reference for mobile zoom scaling
     _scene.fog.color.copy(preset.fogColor);
     _scene.background.copy(preset.fogColor); // keep background in sync with fog
   }
@@ -284,6 +285,28 @@ export function updateLighting(deltaTime, renderer) {
 
 function smoothstep(t) {
   return t * t * (3 - 2 * t);
+}
+
+/**
+ * On mobile, thin the fog as the camera zooms out so the scene doesn't go
+ * dark at max distance. No-op on desktop (>= 768px).
+ * Call every frame after updateControls().
+ * @param {number} camDist - camera.position.distanceTo(controls.target)
+ */
+export function updateFogForDistance(camDist) {
+  if (!_scene?.fog || window.innerWidth >= 768) return;
+
+  // Fog scaling kicks in beyond NEAR_DIST and drops to MIN_SCALE at FAR_DIST.
+  // Range matches mobile minDistance (4) → maxDistance (16).
+  const NEAR_DIST = 7;   // below this, full preset density
+  const FAR_DIST  = 16;  // at max zoom-out, MIN_SCALE density
+  const MIN_SCALE = 0.40; // 40% of preset at farthest zoom
+
+  const t = Math.max(0, Math.min(1, (camDist - NEAR_DIST) / (FAR_DIST - NEAR_DIST)));
+  const scale = 1.0 - t * (1.0 - MIN_SCALE); // linear falloff from 1.0 → MIN_SCALE
+
+  const base = _scene.fog._baseDensity ?? _scene.fog.density;
+  _scene.fog.density = base * scale;
 }
 
 /**

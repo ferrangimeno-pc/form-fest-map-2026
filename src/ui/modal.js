@@ -76,8 +76,8 @@ export function openModal(location) {
   // Always start at the top — prevents leftover scroll from a previous location
   bodyEl.scrollTop = 0;
 
-  // Show modal
-  overlayEl.classList.remove('hidden');
+  // Show modal — add .open to trigger entrance transitions
+  overlayEl.classList.add('open');
   isOpen = true;
 
   // Prevent body scroll (map behind)
@@ -91,7 +91,7 @@ export function openModal(location) {
  * Close the modal.
  */
 export function closeModal() {
-  overlayEl.classList.add('hidden');
+  overlayEl.classList.remove('open');
   isOpen = false;
   document.body.style.overflow = '';
 }

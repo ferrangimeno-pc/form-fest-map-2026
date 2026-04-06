@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { initEngine } from './scene/engine.js';
 import { loadModel, getMeshNames, getMesh, highlightMeshes, restoreAllMeshes, dimMeshesExcept } from './scene/model.js';
 import { initWater, updateWater, updateWaterLighting } from './scene/water.js';
-import { initLighting, updateLighting, getSunLight, getCurrentMode, LIGHT_MODES, setExposure } from './scene/lighting.js';
+import { initLighting, updateLighting, updateFogForDistance, getSunLight, getCurrentMode, LIGHT_MODES, setExposure } from './scene/lighting.js';
 import { initControls, updateControls, flyTo, resetCamera, getControls } from './scene/controls.js';
 import { initPostProcessing, renderPostProcessing, updateBloomForDistance, setCategoryBloom, tickBloomLerp } from './scene/postprocessing.js';
 import { updateProgress, hideLoader } from './ui/loader.js';
@@ -109,6 +109,9 @@ async function init() {
     tickBloomLerp(dt);
     const camDist = camera.position.distanceTo(getControls().target);
     updateBloomForDistance(camDist, dt);
+
+    // Mobile only: reduce fog density as camera zooms out
+    updateFogForDistance(camDist);
 
     renderPostProcessing(elapsed);
 

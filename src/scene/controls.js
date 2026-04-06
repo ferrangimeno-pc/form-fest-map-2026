@@ -4,7 +4,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 let controls = null;
 let flyToAnimation = null;
 
-// Camera limits
+// Camera limits (mobile gets more zoom-out room)
+const isMobile = () => window.innerWidth < 768;
 const LIMITS = {
   minDistance: 4,
   maxDistance: 10,
@@ -54,9 +55,9 @@ const PAN_BOUNDS = {
 export function initControls(camera, domElement) {
   controls = new OrbitControls(camera, domElement);
 
-  // Apply limits
+  // Apply limits — mobile gets more zoom-out headroom
   controls.minDistance = LIMITS.minDistance;
-  controls.maxDistance = LIMITS.maxDistance;
+  controls.maxDistance = isMobile() ? 16 : LIMITS.maxDistance;
   controls.minPolarAngle = LIMITS.minPolarAngle;
   controls.maxPolarAngle = LIMITS.maxPolarAngle;
   controls.enablePan = LIMITS.enablePan;
