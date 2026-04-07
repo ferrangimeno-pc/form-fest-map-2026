@@ -51,6 +51,13 @@ let _currentAzimuth   = 160;
 // Throttle live mode updates (sun moves slowly, no need for 60fps recalc)
 let _liveTimer = 0;
 
+// Reusable objects — avoids allocating new Color/Vector3 instances every frame
+// during transitions and live-mode updates.
+const _tmpColor   = new THREE.Color();
+const _tmpAmbient = new THREE.Color();
+const _tmpFog     = new THREE.Color();
+const _tmpSunPos  = new THREE.Vector3();
+
 // Lerp state for smooth transitions
 let lerpTarget = null;
 let lerpFrom = null;   // snapshot of preset values at transition start
@@ -121,7 +128,7 @@ export async function initLighting(scene, renderer, onProgress) {
 function sunPositionFromAngles(elevationDeg, azimuthDeg, distance = 10) {
   const elRad = THREE.MathUtils.degToRad(elevationDeg);
   const azRad = THREE.MathUtils.degToRad(azimuthDeg);
-  return new THREE.Vector3(
+  return _tmpSunPos.set(
     distance * Math.cos(elRad) * Math.sin(azRad),
     distance * Math.sin(elRad),
     distance * Math.cos(elRad) * Math.cos(azRad)
@@ -156,16 +163,16 @@ function getPresetForHour(hour) {
   const azimuth = 90 + (hour / 24) * 360; // simple rotation
 
   return {
-    color: new THREE.Color().lerpColors(night.color, day.color, t),
+    color: _tmpColor.lerpColors(night.color, day.color, t),
     intensity: THREE.MathUtils.lerp(night.intensity, day.intensity, t),
     elevation: THREE.MathUtils.lerp(night.elevation, day.elevation, t),
     azimuth: azimuth % 360,
     exposure: THREE.MathUtils.lerp(night.exposure, day.exposure, t),
     ambientIntensity: THREE.MathUtils.lerp(night.ambientIntensity, day.ambientIntensity, t),
-    ambientColor: new THREE.Color().lerpColors(night.ambientColor, day.ambientColor, t),
+    ambientColor: _tmpAmbient.lerpColors(night.ambientColor, day.ambientColor, t),
     shadowOpacity: THREE.MathUtils.lerp(night.shadowOpacity, day.shadowOpacity, t),
     fogDensity: THREE.MathUtils.lerp(night.fogDensity, day.fogDensity, t),
-    fogColor: new THREE.Color().lerpColors(night.fogColor, day.fogColor, t),
+    fogColor: _tmpFog.lerpColors(night.fogColor, day.fogColor, t),
   };
 }
 
@@ -243,16 +250,16 @@ function applyPreset(preset, renderer) {
  */
 function lerpPresets(from, to, t) {
   return {
-    color:           new THREE.Color().lerpColors(from.color, to.color, t),
+    color:           _tmpColor.lerpColors(from.color, to.color, t),
     intensity:       THREE.MathUtils.lerp(from.intensity, to.intensity, t),
     elevation:       THREE.MathUtils.lerp(from.elevation, to.elevation, t),
     azimuth:         THREE.MathUtils.lerp(from.azimuth, to.azimuth, t),
     exposure:        THREE.MathUtils.lerp(from.exposure, to.exposure, t),
     ambientIntensity:THREE.MathUtils.lerp(from.ambientIntensity, to.ambientIntensity, t),
-    ambientColor:    new THREE.Color().lerpColors(from.ambientColor, to.ambientColor, t),
+    ambientColor:    _tmpAmbient.lerpColors(from.ambientColor, to.ambientColor, t),
     shadowOpacity:   THREE.MathUtils.lerp(from.shadowOpacity, to.shadowOpacity, t),
     fogDensity:      THREE.MathUtils.lerp(from.fogDensity ?? 0.08, to.fogDensity ?? 0.08, t),
-    fogColor:        new THREE.Color().lerpColors(from.fogColor ?? new THREE.Color('#6B4010'), to.fogColor ?? new THREE.Color('#6B4010'), t),
+    fogColor:        _tmpFog.lerpColors(from.fogColor ?? SUN_PRESETS.day.fogColor, to.fogColor ?? SUN_PRESETS.day.fogColor, t),
   };
 }
 

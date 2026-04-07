@@ -34,6 +34,19 @@
     <!-- Cinematic vignette overlay -->
     <div id="vignette-overlay"></div>
 
+    <!-- Entry Overlay — shown after load, dismissed by user to engage the map -->
+    <div id="entry-overlay" role="dialog" aria-label="Welcome">
+      <button class="explore-btn" id="explore-btn">Explore the map</button>
+    </div>
+
+    <!-- Back to Overlay — appears once the entry overlay is dismissed -->
+    <button id="back-btn" aria-label="Return to overview">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <path d="M8 1L3 6L8 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back
+    </button>
+
     <!-- Lighting Toggle (top-right) -->
     <div id="lighting-toggle">
       <button class="light-btn active" data-mode="live" title="Current time">

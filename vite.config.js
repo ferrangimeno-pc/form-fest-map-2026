@@ -83,6 +83,11 @@ export default defineConfig({
     assetsDir: 'assets',
     // Inline small assets to reduce HTTP requests
     assetsInlineLimit: 4096,
+    // Source maps for the receiving dev team — uploaded to error tracking, not served publicly
+    sourcemap: true,
+    // Three.js core + examples together exceed 500 kB — expected for a WebGL app.
+    // Both chunks are long-lived (hashed, cached), so the size is a one-time cost.
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       input: 'index.html',
       output: {
@@ -90,9 +95,12 @@ export default defineConfig({
         entryFileNames: 'assets/form-map.[hash].js',
         chunkFileNames: 'assets/form-map-[name].[hash].js',
         assetFileNames: 'assets/[name].[hash][extname]',
-        // Split Three.js into its own chunk — stays cached when map code changes
-        manualChunks: {
-          three: ['three'],
+        // Route Three.js core AND all example modules (loaders, controls,
+        // post-processing passes) into one stable chunk. This chunk changes
+        // only when Three.js is upgraded — not on every app code change,
+        // so returning visitors keep it cached for much longer.
+        manualChunks(id) {
+          if (id.includes('node_modules/three')) return 'three';
         },
       },
     },

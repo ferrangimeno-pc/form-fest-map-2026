@@ -113,6 +113,8 @@ export function updateRaycast() {
 export function clearHoverState() {
   if (hoveredLocationId) _clearHover(hoveredLocationId);
   hoveredLocationId = null;
+  _hoverCandidate = null;
+  _hoverCandidateCount = 0;
   _container.style.cursor = '';
 }
 

@@ -54,6 +54,7 @@
   --z-pins: 10;
   --z-ui: 100;
   --z-modal: 200;
+  --z-entry-overlay: 250; /* above modal, below loader so loader masks it during load */
   --z-loader: 300;
 }
 
@@ -607,6 +608,157 @@ html, body {
   font-weight: 600;
   display: inline-block;
   min-width: 5rem;
+}
+
+/* --- Entry Overlay --- */
+#entry-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-entry-overlay);
+
+  /* Warm dark gradient — matches desert/festival palette */
+  background:
+    linear-gradient(
+      160deg,
+      rgba(10, 5, 2, 0.55) 0%,
+      rgba(26, 12, 6, 0.78) 60%,
+      rgba(15, 8, 4, 0.65) 100%
+    );
+  /* Allow host-page vertical scroll when overlay is active (embedded use) */
+  touch-action: pan-y;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Hidden by default — revealed by showEntryOverlay() after load */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.65s;
+}
+
+#entry-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0s;
+}
+
+/* Explore button — entrance: slides up + fades in after overlay settles */
+#entry-overlay.visible .explore-btn {
+  animation: _exploreEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+@keyframes _exploreEnter {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* Frosted glass pill — matches the existing UI language */
+.explore-btn {
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--font-ui);
+  font-size: clamp(0.8rem, 2.2vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 1.1rem 2.6rem;
+  border-radius: 3rem;
+  cursor: pointer;
+  min-height: 3.25rem;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+  transition:
+    background var(--transition-normal),
+    border-color var(--transition-normal),
+    color var(--transition-normal),
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow var(--transition-normal);
+}
+
+.explore-btn:hover {
+  background: rgba(255, 255, 255, 0.20);
+  border-color: rgba(255, 255, 255, 0.50);
+  color: #ffffff;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.explore-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Back Button --- */
+#back-btn {
+  position: absolute;
+  top: max(var(--space-md), env(safe-area-inset-top));
+  left: max(var(--space-md), env(safe-area-inset-left));
+  z-index: var(--z-ui);
+
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.80);
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.85rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  min-height: 2.75rem;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Hidden until overlay is dismissed */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    background    var(--transition-fast),
+    color         var(--transition-fast),
+    opacity       0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility    0s linear 0.4s;
+}
+
+#back-btn.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    background    var(--transition-fast),
+    color         var(--transition-fast),
+    opacity       0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility    0s linear 0s;
+}
+
+#back-btn:hover {
+  background: rgba(0, 0, 0, 0.62);
+  color: #ffffff;
+}
+
+/* Landscape phone: nudge back button to clear safe areas properly */
+@media (max-height: 500px) and (orientation: landscape) {
+  #back-btn {
+    font-size: 0.6rem;
+    padding: 0.4rem 0.65rem;
+    min-height: 2.2rem;
+  }
 }
 
 /* --- DEV: HDRI Controls Panel --- */
