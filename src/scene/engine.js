@@ -66,12 +66,6 @@ export async function initEngine(container) {
   resizeObserver = new ResizeObserver(onResize);
   resizeObserver.observe(container);
 
-  // Pause render loop when tab is hidden
-  let animating = true;
-  document.addEventListener('visibilitychange', () => {
-    animating = !document.hidden;
-  });
-
   return { renderer, scene, camera, isWebGPU: useWebGPU };
 }
 

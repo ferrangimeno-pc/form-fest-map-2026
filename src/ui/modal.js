@@ -4,6 +4,13 @@ const closeBtn = document.getElementById('modal-close');
 
 let isOpen = false;
 
+/** Escape HTML entities to prevent XSS when rendering location data. */
+const _escDiv = document.createElement('div');
+function esc(str) {
+  _escDiv.textContent = str ?? '';
+  return _escDiv.innerHTML;
+}
+
 /**
  * Initialize modal events.
  */
@@ -36,13 +43,12 @@ export function openModal(location) {
   let html = '';
 
   // Title
-  html += `<h1 class="modal-title">${location.name}</h1>`;
+  html += `<h1 class="modal-title">${esc(location.name)}</h1>`;
 
   // Photo
   if (location.photo) {
-    html += `<img class="modal-photo" src="${location.photo}" alt="${location.name}" loading="lazy" />`;
+    html += `<img class="modal-photo" src="${esc(location.photo)}" alt="${esc(location.name)}" loading="lazy" />`;
   } else {
-    // Placeholder
     html += `<div class="modal-photo" style="display:flex;align-items:center;justify-content:center;color:#999;font-family:var(--font-ui);font-size:0.8rem;">Photo coming soon</div>`;
   }
 
@@ -51,8 +57,8 @@ export function openModal(location) {
     location.sections.forEach((section) => {
       html += `
         <div class="modal-section">
-          <h2 class="modal-section-title">${section.title}</h2>
-          <p class="modal-section-body">${section.body}</p>
+          <h2 class="modal-section-title">${esc(section.title)}</h2>
+          <p class="modal-section-body">${esc(section.body)}</p>
         </div>
       `;
     });
@@ -66,7 +72,7 @@ export function openModal(location) {
         <ul class="modal-schedule">
     `;
     location.programming.forEach((entry) => {
-      html += `<li><span class="modal-schedule-time">${entry.time}</span> ${entry.artist}</li>`;
+      html += `<li><span class="modal-schedule-time">${esc(entry.time)}</span> ${esc(entry.artist)}</li>`;
     });
     html += `</ul></div>`;
   }

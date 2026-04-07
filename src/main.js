@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Clock, Box3, Vector3 } from 'three';
 import { initEngine } from './scene/engine.js';
 import { loadModel, getMeshNames, getMesh, highlightMeshes, restoreAllMeshes, dimMeshesExcept } from './scene/model.js';
 import { initWater, updateWater, updateWaterLighting } from './scene/water.js';
@@ -11,6 +11,7 @@ import { initPinRenderer, showPins, hidePins, renderPins } from './ui/pins.js';
 import { initModal, openModal } from './ui/modal.js';
 import { initLightingToggle } from './ui/lightingToggle.js';
 import { initRaycast, updateRaycast, clearHoverState } from './ui/raycast.js';
+import { initEntryOverlay, showEntryOverlay } from './ui/entryOverlay.js';
 import { setActiveCategory } from './ui/categories.js';
 // DEV-only imports — tree-shaken out of production builds
 let initHdriPanel = null;
@@ -56,8 +57,8 @@ async function init() {
     window.__debugRenderer = renderer;
     model.traverse((child) => {
       if (child.isMesh) {
-        const box = new THREE.Box3().setFromObject(child);
-        const size = new THREE.Vector3();
+        const box = new Box3().setFromObject(child);
+        const size = new Vector3();
         box.getSize(size);
         const maxDim = Math.max(size.x, size.y, size.z);
         if (maxDim > 3) {
@@ -78,11 +79,13 @@ async function init() {
     openModal(location);
   });
 
-  // 7. Hide loader
+  // 7. Hide loader, then reveal entry overlay
   hideLoader();
 
   // 7. Initialize UI
   initModal();
+  initEntryOverlay();  // must init before show (wires DOM refs + event listeners)
+  showEntryOverlay();
   initLightingToggle(renderer);
   if (import.meta.env.DEV) initHdriPanel?.(renderer, { sunLight: getSunLight() });
 
@@ -96,7 +99,7 @@ async function init() {
   await new Promise((resolve) => requestAnimationFrame(resolve));
 
   // 10. Start render loop
-  const clock = new THREE.Clock();
+  const clock = new Clock();
   function animate() {
     requestAnimationFrame(animate);
 
