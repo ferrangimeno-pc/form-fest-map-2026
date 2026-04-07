@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { getCurrentMode, LIGHT_MODES } from './lighting.js';
+import { onResizeSubscribe } from './engine.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -113,13 +114,16 @@ let bloomPass = null;
 export function initPostProcessing(renderer, scene, camera) {
   composer = new EffectComposer(renderer);
 
+  // Use the renderer's current size (matches container, set by engine.js ResizeObserver)
+  const size = renderer.getSize(new THREE.Vector2());
+
   // Base render pass
   const renderPass = new RenderPass(scene, camera);
   composer.addPass(renderPass);
 
   // Bloom — subtle glow on bright highlights (half resolution for GPU savings)
   bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(Math.floor(window.innerWidth / 2), Math.floor(window.innerHeight / 2)),
+    new THREE.Vector2(Math.floor(size.x / 2), Math.floor(size.y / 2)),
     0.40,   // strength
     0.55,   // radius
     0.65    // threshold
@@ -132,7 +136,7 @@ export function initPostProcessing(renderer, scene, camera) {
 
   // SMAA — runs before film grain so it only sees clean geometry edges,
   // not the grain noise (which would cause it to smear random pixels as "edges")
-  const smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
+  const smaaPass = new SMAAPass(size.x, size.y);
   composer.addPass(smaaPass);
 
   // Film grain — added last so SMAA never processes it
@@ -143,10 +147,8 @@ export function initPostProcessing(renderer, scene, camera) {
   const outputPass = new OutputPass();
   composer.addPass(outputPass);
 
-  // Handle resize
-  window.addEventListener('resize', () => {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+  // Handle resize — driven by engine.js ResizeObserver (container-relative, not window)
+  onResizeSubscribe((w, h) => {
     composer.setSize(w, h);
     bloomPass.setSize(Math.floor(w / 2), Math.floor(h / 2));
     smaaPass.setSize(w, h);

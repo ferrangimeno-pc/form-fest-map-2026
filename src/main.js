@@ -91,7 +91,11 @@ async function init() {
     handleCategoryChange(categoryId, scene, camera, renderer);
   });
 
-  // 9. Start render loop
+  // 9. Wait one frame so the browser finishes layout (critical on mobile first-load
+  // where 100dvh and safe-area calculations settle after script execution).
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+
+  // 10. Start render loop
   const clock = new THREE.Clock();
   function animate() {
     requestAnimationFrame(animate);
@@ -227,7 +231,7 @@ function _fitCameraToLocations(locations, camera) {
   // Measure category bar height for viewport compensation.
   const barEl   = document.getElementById('categories-bar');
   const barH    = barEl ? barEl.getBoundingClientRect().height : 100;
-  const screenH = window.innerHeight;
+  const screenH = container.clientHeight;
   const barFraction = Math.min(barH / screenH, 0.45);
 
   // Camera distance: pull back proportionally so all pins fit in the available viewport.

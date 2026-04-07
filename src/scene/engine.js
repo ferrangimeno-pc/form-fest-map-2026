@@ -2,6 +2,8 @@ import * as THREE from 'three';
 
 let renderer, scene, camera;
 let useWebGPU = false;
+let resizeObserver = null;
+const resizeCallbacks = [];
 
 /**
  * Initialize the Three.js engine: scene, camera, renderer.
@@ -16,7 +18,7 @@ export async function initEngine(container) {
   // Camera — initial position depends on screen size (desktop vs mobile)
   const aspect = container.clientWidth / container.clientHeight;
   camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 100);
-  const isDesktop = window.innerWidth >= 768;
+  const isDesktop = container.clientWidth >= 768;
   if (isDesktop) {
     camera.position.set(-0.888, 4.228, 5.781);
     camera.lookAt(0.0, 0.0, 0.0);
@@ -47,15 +49,22 @@ export async function initEngine(container) {
 
   container.appendChild(renderer.domElement);
 
-  // Handle resize
+  // Handle resize via ResizeObserver — fires on initial layout settle AND whenever
+  // the container size changes (embed resize, orientation change, browser chrome shift).
+  // This replaces window.addEventListener('resize') which misses the critical first-load
+  // layout settle on mobile Safari/Chrome, causing a distorted render.
   const onResize = () => {
     const w = container.clientWidth;
     const h = container.clientHeight;
+    if (w === 0 || h === 0) return; // container not visible yet
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
+    // Notify other systems (post-processing, etc.)
+    for (const cb of resizeCallbacks) cb(w, h);
   };
-  window.addEventListener('resize', onResize);
+  resizeObserver = new ResizeObserver(onResize);
+  resizeObserver.observe(container);
 
   // Pause render loop when tab is hidden
   let animating = true;
@@ -70,3 +79,5 @@ export function getRenderer() { return renderer; }
 export function getScene() { return scene; }
 export function getCamera() { return camera; }
 export function isWebGPU() { return useWebGPU; }
+/** Register a callback that fires on every container resize with (width, height). */
+export function onResizeSubscribe(cb) { resizeCallbacks.push(cb); }
