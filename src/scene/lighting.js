@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-const HDRI_PATH = 'assets/hdri/desert.hdr';
+const HDRI_PATH = 'assets/hdri/desert_2k.hdr';
 
 /** Lighting modes */
 export const LIGHT_MODES = {
@@ -13,28 +13,28 @@ export const LIGHT_MODES = {
 // Sun presets per mode
 const SUN_PRESETS = {
   day: {
-    color: new THREE.Color('#FFE0A0'),
+    color: new THREE.Color('#FFCF7A'),
     intensity: 3,
-    elevation: 50,
+    elevation: 40,
     azimuth: 160, // sun from south-east — consistent shadows falling north-west
     exposure: 1,
-    ambientIntensity: 0.4,
+    ambientIntensity: 0.3,
     ambientColor: new THREE.Color('#9AB0D0'),
     shadowOpacity: 0.5,
     fogDensity: 0.08,                          // dusty haze in daylight
-    fogColor: new THREE.Color('#6B4010'),      // dark reddish-brown, lighter than bg #36150D
+    fogColor: new THREE.Color('#69451B'),      // dark reddish-brown, lighter than bg #36150D
   },
   night: {
     color: new THREE.Color('#A0B8D8'),  // cooler, brighter moonlight blue
-    intensity: 1.8,                     // enough to show terrain + shadows
-    elevation: 35,                      // slightly higher — cleaner shadow angle
-    azimuth: 90,
-    exposure: 0.72,                     // lifted — scene stays readable at night
+    intensity: 1.6,                     // enough to show terrain + shadows
+    elevation: 30,                      // slightly higher — cleaner shadow angle
+    azimuth: 149,
+    exposure: 0.75,                     // lifted — scene stays readable at night
     ambientIntensity: 0.45,             // more fill so surfaces don't disappear
     ambientColor: new THREE.Color('#2A3A5A'), // deep blue night sky fill
     shadowOpacity: 0.3,
-    fogDensity: 0.068,                        // slightly less thick
-    fogColor: new THREE.Color('#2e2820'),      // dark brown, lifted from near-black
+    fogDensity: 0.07,                        // slightly less thick
+    fogColor: new THREE.Color('#4E4436'),      // dark brown, lifted from near-black
   },
 };
 
@@ -43,6 +43,10 @@ let ambientLight = null;
 let envMap = null;
 let _scene = null;
 let currentMode = LIGHT_MODES.LIVE;
+
+// Track current sun angles so individual setters can update position correctly
+let _currentElevation = 50;
+let _currentAzimuth   = 160;
 
 // Throttle live mode updates (sun moves slowly, no need for 60fps recalc)
 let _liveTimer = 0;
@@ -95,7 +99,7 @@ export async function initLighting(scene, renderer, onProgress) {
   sunLight.shadow.camera.top = 8;
   sunLight.shadow.camera.bottom = -8;
   sunLight.shadow.bias = -0.001;
-  sunLight.shadow.normalBias = 0.02;
+  sunLight.shadow.normalBias = 0.035;
   sunLight.shadow.radius = 2;
 
   scene.add(sunLight);
@@ -209,6 +213,9 @@ export function applyLightMode(mode, renderer, immediate = false) {
  */
 function applyPreset(preset, renderer) {
   if (!sunLight) return;
+
+  _currentElevation = preset.elevation;
+  _currentAzimuth   = preset.azimuth;
 
   sunLight.color.copy(preset.color);
   sunLight.intensity = preset.intensity;
@@ -355,3 +362,42 @@ export function setAmbientIntensity(value) {
 export function getSunLight() { return sunLight; }
 export function getAmbientLight() { return ambientLight; }
 export function getCurrentMode() { return currentMode; }
+
+export function setSunElevation(value) {
+  _currentElevation = value;
+  if (sunLight) sunLight.position.copy(sunPositionFromAngles(_currentElevation, _currentAzimuth));
+}
+
+export function setSunAzimuth(value) {
+  _currentAzimuth = value;
+  if (sunLight) sunLight.position.copy(sunPositionFromAngles(_currentElevation, _currentAzimuth));
+}
+
+export function setSunColor(hex) {
+  if (sunLight) sunLight.color.set(hex);
+}
+
+export function setAmbientColor(hex) {
+  if (ambientLight) ambientLight.color.set(hex);
+}
+
+export function setFogDensity(value) {
+  if (_scene?.fog) {
+    _scene.fog.density = value;
+    _scene.fog._baseDensity = value;
+  }
+}
+
+export function setFogColor(hex) {
+  if (_scene?.fog) _scene.fog.color.set(hex);
+  if (_scene?.background) _scene.background.set(hex);
+}
+
+export function setShadowOpacity(value) {
+  if (sunLight) sunLight.shadow.opacity = value;
+}
+
+/** Returns the raw preset object for the given mode ('day' | 'night'). */
+export function getPreset(mode) {
+  return SUN_PRESETS[mode] ?? SUN_PRESETS.day;
+}

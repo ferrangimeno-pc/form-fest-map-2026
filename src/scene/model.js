@@ -117,6 +117,16 @@ export async function loadModel(scene, onProgress) {
           }
         });
 
+        // Terrain self-shadowing fix: use BackSide shadow casting so the
+        // natural offset between back faces and the lit surface lets
+        // terrain slopes cast visible shadows on themselves.
+        const terrain = meshes['Terrain_Step_Terrace_CamrCop'];
+        if (terrain) {
+          const mats = Array.isArray(terrain.material) ? terrain.material : [terrain.material];
+          mats.forEach((mat) => { if (mat) mat.shadowSide = THREE.BackSide; });
+          console.log('[Model] Terrain shadowSide set to BackSide for self-shadowing');
+        }
+
         scene.add(modelRoot);
         dracoLoader.dispose();
 
