@@ -42,7 +42,7 @@ export function showPins(locations, scene, onClick) {
   locations.forEach((loc) => {
     const el = document.createElement('div');
     el.className = 'pin-label';
-    el.textContent = loc.name;
+    el.innerHTML = `<span class="pin-label__text">${loc.name}</span><svg class="pin-label__arrow" width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 1L9 6L4 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     el.style.pointerEvents = 'auto';
 
     el.addEventListener('click', (e) => {
@@ -96,6 +96,11 @@ export function showHoverPin(location, onClick) {
   textEl.className = 'pin-label__text';
   textEl.textContent = location.name;
   el.appendChild(textEl);
+
+  const arrowEl = document.createElement('span');
+  arrowEl.className = 'pin-label__arrow';
+  arrowEl.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 1L9 6L4 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  el.appendChild(arrowEl);
 
   el.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -187,6 +192,25 @@ export function renderPins(scene, camera) {
     el.style.display = '';
     el.style.transform = `translate(${sx}px, ${sy}px) translate(-50%, calc(-100% - 1.5rem - 30px))`;
   });
+}
+
+/**
+ * Add a hover highlight class to an existing category pin (arrow nudge, no slide).
+ */
+export function highlightPin(locationId) {
+  const entry = pins.get(locationId);
+  if (!entry) return false;
+  entry.el.classList.add('pin-label--active-hover');
+  return true;
+}
+
+/**
+ * Remove hover highlight from an existing category pin.
+ */
+export function unhighlightPin(locationId) {
+  const entry = pins.get(locationId);
+  if (!entry) return;
+  entry.el.classList.remove('pin-label--active-hover');
 }
 
 export function getPinRenderer() { return overlayEl; }

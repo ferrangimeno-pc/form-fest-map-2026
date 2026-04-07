@@ -10,7 +10,7 @@ import { initCategories } from './ui/categories.js';
 import { initPinRenderer, showPins, hidePins, renderPins } from './ui/pins.js';
 import { initModal, openModal } from './ui/modal.js';
 import { initLightingToggle } from './ui/lightingToggle.js';
-import { initRaycast, updateRaycast, clearHoverState } from './ui/raycast.js';
+import { initRaycast, updateRaycast, clearHoverState, applyIdleTints } from './ui/raycast.js';
 import { initEntryOverlay, showEntryOverlay } from './ui/entryOverlay.js';
 import { setActiveCategory } from './ui/categories.js';
 // DEV-only imports — tree-shaken out of production builds
@@ -79,6 +79,9 @@ async function init() {
     openModal(location);
   });
 
+  // 6b. Apply default 25% category-color tint to all clickable buildings
+  applyIdleTints();
+
   // 7. Hide loader, then reveal entry overlay
   hideLoader();
 
@@ -144,7 +147,8 @@ function handleCategoryChange(categoryId, scene, camera, renderer) {
   hidePins(scene);
 
   if (!categoryId) {
-    // No category selected — reset to overview
+    // No category selected — reset to overview with 25% idle tints
+    applyIdleTints();
     setCategoryBloom(false);
     if (getCurrentMode() === LIGHT_MODES.NIGHT) setExposure(renderer, 0.72);
     resetCamera(camera);
@@ -167,8 +171,9 @@ function handleCategoryChange(categoryId, scene, camera, renderer) {
     highlightMeshes(objNames, category.highlightColor);
   });
 
-  // Dim non-highlighted objects and adjust bloom to compensate.
-  // Night mode: scene is already dark — skip dimming and don't reduce bloom
+  // Apply idle tints to non-highlighted clickable buildings so they stay
+  // subtly coloured instead of being dimmed to grey.
+  // Night mode: scene is already dark — skip tinting and don't reduce bloom
   // (bloom is what keeps the night scene readable; reducing it causes near-blackout).
   // Stages + Camping cover large areas and zoom out far — boost exposure in night mode
   // so the wider view stays readable.
@@ -176,7 +181,11 @@ function handleCategoryChange(categoryId, scene, camera, renderer) {
   if (allObjectNames.length > 0) {
     const isNight = getCurrentMode() === LIGHT_MODES.NIGHT;
     if (!isNight) {
-      dimMeshesExcept(allObjectNames);
+      applyIdleTints();
+      // Re-apply 100% highlight on top (applyIdleTints overwrites them at 35%)
+      locations.forEach((loc) => {
+        highlightMeshes(getObjectsForLocation(loc.id), category.highlightColor);
+      });
     } else if (NIGHT_EXPOSURE_BOOST_CATEGORIES.has(categoryId)) {
       setExposure(renderer, 1.2);
     } else {
