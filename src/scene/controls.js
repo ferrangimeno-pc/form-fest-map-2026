@@ -67,7 +67,14 @@ export function initControls(camera, domElement) {
   controls.enableDamping = LIMITS.enableDamping;
   controls.dampingFactor = LIMITS.dampingFactor;
 
-  // Touch settings for mobile
+  // Desktop mouse: left = pan, right = rotate, middle = zoom
+  controls.mouseButtons = {
+    LEFT:   THREE.MOUSE.PAN,
+    MIDDLE: THREE.MOUSE.DOLLY,
+    RIGHT:  THREE.MOUSE.ROTATE,
+  };
+
+  // Touch settings for mobile (unchanged)
   controls.touches = {
     ONE: THREE.TOUCH.ROTATE,
     TWO: THREE.TOUCH.DOLLY_PAN,

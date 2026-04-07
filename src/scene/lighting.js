@@ -21,8 +21,8 @@ const SUN_PRESETS = {
     ambientIntensity: 0.4,
     ambientColor: new THREE.Color('#9AB0D0'),
     shadowOpacity: 0.5,
-    fogDensity: 0.10,                          // dusty haze in daylight
-    fogColor: new THREE.Color('#6b5a45'),      // warm sandy brown
+    fogDensity: 0.08,                          // dusty haze in daylight
+    fogColor: new THREE.Color('#6B4010'),      // dark reddish-brown, lighter than bg #36150D
   },
   night: {
     color: new THREE.Color('#A0B8D8'),  // cooler, brighter moonlight blue
@@ -33,7 +33,7 @@ const SUN_PRESETS = {
     ambientIntensity: 0.45,             // more fill so surfaces don't disappear
     ambientColor: new THREE.Color('#2A3A5A'), // deep blue night sky fill
     shadowOpacity: 0.3,
-    fogDensity: 0.085,                        // slightly less thick
+    fogDensity: 0.068,                        // slightly less thick
     fogColor: new THREE.Color('#2e2820'),      // dark brown, lifted from near-black
   },
 };
@@ -70,8 +70,8 @@ export async function initLighting(scene, renderer, onProgress) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.environment = texture;
         scene.environmentIntensity = 0.3;
-        scene.background = new THREE.Color('#6b5a45');
-        scene.fog = new THREE.FogExp2('#6b5a45', 0.08); // overwritten by applyLightMode below
+        scene.background = new THREE.Color('#6B4010');
+        scene.fog = new THREE.FogExp2('#6B4010', 0.08); // overwritten by applyLightMode below
         resolve(texture);
       },
       (xhr) => {
@@ -245,7 +245,7 @@ function lerpPresets(from, to, t) {
     ambientColor:    new THREE.Color().lerpColors(from.ambientColor, to.ambientColor, t),
     shadowOpacity:   THREE.MathUtils.lerp(from.shadowOpacity, to.shadowOpacity, t),
     fogDensity:      THREE.MathUtils.lerp(from.fogDensity ?? 0.08, to.fogDensity ?? 0.08, t),
-    fogColor:        new THREE.Color().lerpColors(from.fogColor ?? new THREE.Color('#6b5a45'), to.fogColor ?? new THREE.Color('#6b5a45'), t),
+    fogColor:        new THREE.Color().lerpColors(from.fogColor ?? new THREE.Color('#6B4010'), to.fogColor ?? new THREE.Color('#6B4010'), t),
   };
 }
 

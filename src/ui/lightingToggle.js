@@ -56,9 +56,11 @@ function updateButtonStates(activeMode) {
  */
 function updateLiveClock() {
   const now = new Date();
-  const hours = String(now.getHours()).padStart(2, '0');
+  const h24 = now.getHours();
+  const ampm = h24 >= 12 ? 'PM' : 'AM';
+  const h12 = h24 % 12 || 12;
   const minutes = String(now.getMinutes()).padStart(2, '0');
   if (liveLabel) {
-    liveLabel.textContent = `${hours}:${minutes}`;
+    liveLabel.textContent = `${h12}:${minutes} ${ampm}`;
   }
 }
