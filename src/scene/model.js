@@ -200,6 +200,35 @@ function cloneMaterial(material) {
 }
 
 /**
+ * Tint meshes by lerping original material color toward a category color.
+ * @param {string[]} names - GLTF object names
+ * @param {number} color - Hex category color
+ * @param {number} intensity - 0..1 blend factor (0 = original, 1 = full category color)
+ */
+export function tintMeshes(names, color, intensity) {
+  const catColor = new THREE.Color(color);
+  names.forEach((name) => {
+    const mesh = meshes[name];
+    if (!mesh || mesh.userData.protectedMaterial) return;
+    const origMats = Array.isArray(mesh.userData.originalMaterial)
+      ? mesh.userData.originalMaterial
+      : [mesh.userData.originalMaterial];
+    if (!origMats[0]) return;
+    const newMats = origMats.map((mat) => {
+      const c = mat.clone();
+      c.color.lerp(catColor, intensity);
+      c.emissive.copy(catColor);
+      c.emissiveIntensity = intensity * 0.2;
+      c.side = THREE.DoubleSide;
+      c.shadowSide = THREE.FrontSide;
+      return c;
+    });
+    disposeMeshMaterial(mesh);
+    mesh.material = Array.isArray(mesh.userData.originalMaterial) ? newMats : newMats[0];
+  });
+}
+
+/**
  * Highlight meshes by setting emissive color.
  * @param {string[]} names - GLTF object names
  * @param {number} color - Hex color (e.g., 0xFF6B35)

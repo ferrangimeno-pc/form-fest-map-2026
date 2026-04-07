@@ -307,12 +307,15 @@ html, body {
   position: absolute;
   left: 0;
   top: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   background: #FFFFFF;
   color: var(--color-text-primary);
   font-family: var(--font-ui);
   font-weight: 700;
   font-size: 0.7rem;
-  padding: 0.3rem 0.6rem;
+  padding: 0.3rem 0.5rem 0.3rem 0.6rem;
   border-radius: 0.25rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
@@ -341,6 +344,30 @@ html, body {
 
 .pin-label:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Arrow icon — right of pin text */
+.pin-label__arrow {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  animation: _pinArrowNudge 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+.pin-label:hover .pin-label__arrow {
+  animation: _pinArrowHover 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes _pinArrowNudge {
+  0%   { translate: -4px 0; opacity: 0; }
+  60%  { translate: 3px 0;  opacity: 1; }
+  100% { translate: 0 0;    opacity: 1; }
+}
+
+@keyframes _pinArrowHover {
+  0%   { translate: 0 0; }
+  50%  { translate: 3px 0; }
+  100% { translate: 0 0; }
 }
 
 /* Hover pin animations
@@ -372,6 +399,11 @@ html, body {
 @keyframes _pinTextEnter {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* Active-category pin highlighted by hover — no slide, just arrow nudge */
+.pin-label--active-hover .pin-label__arrow {
+  animation: _pinArrowHover 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .pin-label--leaving {
@@ -884,6 +916,73 @@ html, body {
   .cat-btn {
     padding: 0.7rem 1rem;
   }
+
+  /* Modal: right-aligned panel so the 3D content stays visible */
+  #modal-overlay {
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 50px;
+  }
+
+  #modal {
+    max-width: 26rem;
+    max-height: none;
+    height: 100%;
+    border-radius: 1rem;
+    margin-bottom: 0;
+  }
+
+  /* Slide in from right instead of bottom */
+  #modal {
+    transform: translateX(100%);
+  }
+  #modal-overlay.open #modal {
+    transform: translateX(0);
+  }
+  #modal-overlay:not(.open) #modal {
+    transform: translateX(100%);
+  }
+}
+
+/* --- Controls Legend (desktop only) --- */
+.controls-legend {
+  position: absolute;
+  bottom: max(var(--space-md), env(safe-area-inset-bottom));
+  left: max(var(--space-md), env(safe-area-inset-left));
+  z-index: var(--z-ui);
+  display: none;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (min-width: 1024px) {
+  .controls-legend {
+    display: flex;
+  }
+}
+
+.controls-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controls-legend__icon {
+  height: 1rem;
+  width: auto;
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 /* --- Responsive: Landscape phone (short screens) --- */

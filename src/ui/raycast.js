@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { MODEL_MAP, getLocationForObject } from '../config/modelMap.js';
+import { MODEL_MAP, getLocationForObject, getObjectsForLocation } from '../config/modelMap.js';
 import { CATEGORIES } from '../config/categories.js';
-import { getMesh, getModelRoot } from '../scene/model.js';
+import { getMesh, getModelRoot, tintMeshes, highlightMeshes } from '../scene/model.js';
 import { getActiveCategory } from './categories.js';
-import { showHoverPin, hideHoverPin } from './pins.js';
+import { showHoverPin, hideHoverPin, highlightPin, unhighlightPin } from './pins.js';
 
 const raycaster  = new THREE.Raycaster();
 const _mouse     = new THREE.Vector2();
@@ -24,8 +24,9 @@ let _scene       = null;
 let _locationsData   = null;
 let _onBuildingClick = null;
 
-let hoveredLocationId = null;
-let _hoverPinShown    = false;
+let hoveredLocationId     = null;
+let _hoverPinShown        = false;
+let _hoverPinHighlightedId = null; // locationId of category pin currently highlighted
 
 // Hover stabiliser — only commit to a new hover target after it is hit
 // HOVER_HOLD_FRAMES consecutive frames. Prevents 1-frame flicker when the
@@ -118,6 +119,25 @@ export function clearHoverState() {
   _container.style.cursor = '';
 }
 
+/**
+ * Apply the default 25% category-color tint to all clickable buildings.
+ * Call after model load and whenever returning to the idle (no category) state.
+ */
+export function applyIdleTints() {
+  if (!_locationsData) return;
+  const seen = new Set();
+  _locationsData.locations.forEach((loc) => {
+    if (seen.has(loc.id)) return;
+    seen.add(loc.id);
+    const cat = CATEGORIES.find((c) => c.id === loc.category);
+    if (!cat) return;
+    const meshNames = Object.entries(MODEL_MAP)
+      .filter(([, id]) => id === loc.id)
+      .map(([name]) => name);
+    tintMeshes(meshNames, cat.highlightColor, 0.35);
+  });
+}
+
 // ─── Hover helpers ────────────────────────────────────────────────────────────
 
 function _getCategory(location) {
@@ -139,66 +159,73 @@ function _applyHover(locationId) {
   if (!category) return;
 
   const activeCategory = getActiveCategory();
-  const isAlreadyActive = activeCategory === location.category;
 
-  // If this building is already highlighted at 100% (its category is active),
-  // don't change its material — just let the cursor show pointer.
-  if (!isAlreadyActive) {
-    // 70% of the category colour
-    const hoverColor = new THREE.Color(category.highlightColor).multiplyScalar(0.7);
-
-    _getMeshesForLocation(locationId).forEach((mesh) => {
-      if (mesh.userData.protectedMaterial) return;
-      // Save current material so we can restore on hover-out
-      mesh.userData._hoverSavedMaterial = mesh.material;
-
-      const mats    = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      const newMats = mats.map((mat) => {
-        const c = mat.clone();
-        c.color.copy(hoverColor);
-        c.emissive = new THREE.Color(category.highlightColor);
-        c.emissiveIntensity = 0.1; // softer than the active 0.2
-        c.side = THREE.DoubleSide;
-        return c;
-      });
-      mesh.material = Array.isArray(mesh.material) ? newMats : newMats[0];
-    });
-
-    // Show hover pin only if the location has a pin position defined
-    if (location.pinPosition) {
-      showHoverPin(location, (id) => {
-        if (_onBuildingClick) _onBuildingClick(id);
-      });
-      _hoverPinShown = true;
+  // Tint non-hovered clickable buildings: 20% for non-active, 100% for active-category.
+  // Then boost hovered building to 75%.
+  const seen = new Set();
+  _locationsData.locations.forEach((loc) => {
+    if (seen.has(loc.id)) return;
+    seen.add(loc.id);
+    const cat = CATEGORIES.find((c) => c.id === loc.category);
+    if (!cat) return;
+    const meshNames = Object.entries(MODEL_MAP)
+      .filter(([, id]) => id === loc.id)
+      .map(([name]) => name);
+    if (activeCategory && loc.category === activeCategory) {
+      // Active category siblings stay at 100%
+      highlightMeshes(meshNames, cat.highlightColor);
+    } else {
+      tintMeshes(meshNames, cat.highlightColor, 0.20);
     }
+  });
+
+  // Hovered building at 75% (overrides the 100% or 20% set above)
+  const hoveredMeshNames = Object.entries(MODEL_MAP)
+    .filter(([, id]) => id === locationId)
+    .map(([name]) => name);
+  tintMeshes(hoveredMeshNames, category.highlightColor, 0.75);
+
+  // Pin handling: if this building already has a category pin, just highlight it
+  // (arrow nudge, no slide-in). Otherwise show the full hover pin.
+  if (activeCategory && location.category === activeCategory) {
+    highlightPin(locationId);
+    _hoverPinHighlightedId = locationId;
+  } else if (location.pinPosition) {
+    showHoverPin(location, (id) => {
+      if (_onBuildingClick) _onBuildingClick(id);
+    });
+    _hoverPinShown = true;
   }
 }
 
 function _clearHover(locationId) {
-  const location = _locationsData.locations.find((l) => l.id === locationId);
-  if (!location) return;
-
   const activeCategory = getActiveCategory();
-  const wasAlreadyActive = activeCategory === location.category;
 
-  if (!wasAlreadyActive) {
-    // Restore saved materials, disposing the hover clones
-    _getMeshesForLocation(locationId).forEach((mesh) => {
-      if (mesh.userData.protectedMaterial) return;
-      if (mesh.userData._hoverSavedMaterial !== undefined) {
-        // Dispose the temporary hover material before restoring
-        const old = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        old.forEach((m) => { if (m && m.dispose) m.dispose(); });
-        mesh.material = mesh.userData._hoverSavedMaterial;
-        delete mesh.userData._hoverSavedMaterial;
-      }
-    });
-
-    // Remove hover pin
-    if (_hoverPinShown) {
-      hideHoverPin();
-      _hoverPinShown = false;
+  // Restore all buildings: active-category → 100%, others → 35% idle
+  const seen = new Set();
+  _locationsData.locations.forEach((loc) => {
+    if (seen.has(loc.id)) return;
+    seen.add(loc.id);
+    const cat = CATEGORIES.find((c) => c.id === loc.category);
+    if (!cat) return;
+    const meshNames = Object.entries(MODEL_MAP)
+      .filter(([, id]) => id === loc.id)
+      .map(([name]) => name);
+    if (activeCategory && loc.category === activeCategory) {
+      highlightMeshes(meshNames, cat.highlightColor);
+    } else {
+      tintMeshes(meshNames, cat.highlightColor, 0.35);
     }
+  });
+
+  // Remove hover pin or unhighlight category pin
+  if (_hoverPinHighlightedId) {
+    unhighlightPin(_hoverPinHighlightedId);
+    _hoverPinHighlightedId = null;
+  }
+  if (_hoverPinShown) {
+    hideHoverPin();
+    _hoverPinShown = false;
   }
 }
 
