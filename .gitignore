@@ -9,7 +9,7 @@ dist/
 Thumbs.db
 *.log
 
-# Claude Code session data (local only, not needed in repo)
+# Local editor / session data
 .claude/
 
 # Source files too large for Git (keep in local storage / shared drive)
