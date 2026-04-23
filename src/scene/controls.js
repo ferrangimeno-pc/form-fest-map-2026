@@ -12,7 +12,7 @@ const LIMITS = {
   minDistance: 5,
   maxDistance: 10,
   minPolarAngle: THREE.MathUtils.degToRad(10),  // almost top-down
-  maxPolarAngle: THREE.MathUtils.degToRad(75),   // never below horizon
+  maxPolarAngle: THREE.MathUtils.degToRad(70),   // stay clearly above horizon — never reveal terrain underside
   enablePan: true,
   panSpeed: 0.8,
   rotateSpeed: 0.5,
@@ -94,8 +94,10 @@ export function getDefaultCamera() {
 // Interactive targets span x[-7.84 (RVs) → 0 (pool)] z[-8.13 (RVs) → 1.21 (cafe)].
 // Bounds widened so fly-to the southern cluster (camping, glamping, glamping-rvs)
 // and the eastern stages can actually complete without clamping the target.
+// y min clamped to 0 (ground) so panning can't drag the camera under the terrain —
+// OrbitControls pans target + camera together, so target.y >= 0 keeps camera.y >= 0.
 const PAN_BOUNDS = {
-  min: new THREE.Vector3(-10, -1, -10),
+  min: new THREE.Vector3(-10, 0, -10),
   max: new THREE.Vector3(4, 3, 4),
 };
 
