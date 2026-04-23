@@ -11,9 +11,9 @@ Interactive WebGL site map for [experienceform.com](https://www.experienceform.c
 - **Three.js r170** — WebGL renderer, GLTF/GLB loading, OrbitControls, raycasting
 - **Vite 6** — dev server + production build
 - **Vanilla JS (ES modules)** — no framework dependency, maximum portability
-- **GLB + Draco compression** — 3D model at 4.85 MB
+- **GLB + Draco compression** — 3D model at 2.5 MB
 - **HDRI lighting** — day/live/night presets with smooth transitions
-- **EffectComposer** post-processing — bloom, SMAA, film grain, color grading
+- **EffectComposer** post-processing — bloom (quarter-res), SMAA (desktop), film grain, color grading
 
 ---
 
@@ -93,7 +93,6 @@ The following are currently placeholder and need to be filled before launch:
 | `photo` | Empty (`""`) | All 17 locations show "Photo coming soon". Add JPGs to `public/assets/photos/` and update the path. |
 | `sections[].body` | Lorem ipsum | Needs real copy per location (history, new-in-2026, etc.) |
 | `programming` | Placeholder artists | Needs real artist names and set times |
-| MISC category | No locations | Category exists in the UI — locations need to be defined once client provides them |
 | Bars | 2 locations (bar-1, bar-2) | Client to confirm bar names and whether more exist |
 
 **No code changes required** to update any of the above — only `locations.json` and the photo assets.
@@ -104,16 +103,15 @@ The following are currently placeholder and need to be filled before launch:
 
 Defined in `src/config/categories.js`. Current categories and their highlight colors:
 
-| ID | Label | Color |
-|---|---|---|
-| `stages` | STAGES | `#FF6B35` orange |
-| `food` | FOOD | `#8BC34A` green |
-| `shop` | SHOP | `#4A90A4` teal |
-| `camping` | CAMPING ZONES | `#F5C842` gold |
-| `restrooms` | RESTROOMS | `#4A90D9` blue |
-| `guest-services` | GUEST SERVICES | `#E53935` red |
-| `bars` | BARS | `#E91E90` pink |
-| `misc` | MISC | `#9E9E9E` gray |
+| ID | Label | Color | Locations |
+|---|---|---|---|
+| `stages` | Stages | `#FF6B35` orange | 5 |
+| `food` | Food | `#8BC34A` green | 3 |
+| `shop` | Shop | `#4A90A4` teal | 1 |
+| `camping` | Camping Zones | `#F5C842` gold | 3 |
+| `restrooms` | Restrooms | `#4A90D9` blue | 2 |
+| `guest-services` | Guest Services | `#E53935` red | 1 |
+| `bars` | Bars | `#E91E90` pink | 2 |
 
 ---
 
@@ -165,14 +163,19 @@ src/
 
 public/
   assets/
-    model/formFestMap.glb  — 3D model (4.85 MB, Draco compressed)
+    model/formFestMap.glb  — 3D model (2.5 MB, Draco compressed)
     hdri/desert_2k.hdr     — HDRI environment map (1.4 MB)
+    hdri/desert.hdr        — higher-res HDRI (5.5 MB, unused at runtime)
     photos/                — location photos (add here)
-    draco/                 — Draco WASM decoder (do not modify)
+    icons/                 — mouse SVG icons for desktop controls legend
+    fonts/                 — (reserved — Montserrat currently loads from Google Fonts)
+  draco/                   — Draco WASM decoder (do not modify)
 
 scripts/
-  validate-model.mjs       — GLB mesh validator
-  optimize-model.mjs       — GLTF → GLB conversion utility
+  validate-model.mjs       — GLB mesh validator (npm run validate-model)
+  optimize-model.mjs       — GLTF → GLB conversion utility (npm run optimize-model)
+  inspect-all.mjs          — dev diagnostic: full mesh/material dump
+  inspect-meshes.mjs       — dev diagnostic: mesh name listing
 ```
 
 ---
@@ -194,7 +197,7 @@ To access dev tools, run `npm run dev` and open `http://localhost:5173`.
 npm run build
 ```
 
-Output in `dist/` — static files, ready to deploy to any host. The Three.js chunk is hashed and long-cache-friendly; only the small app chunk (~12 kB gzip) changes between updates.
+Output in `dist/` — static files, ready to deploy to any host. Current bundle sizes (gzipped): Three.js chunk ~195 kB (hashed, long-cache-friendly), app chunk ~14 kB, CSS ~4 kB. Only the app chunk changes between content updates.
 
 This repo is connected to Vercel for preview deployments. Push to `master` → auto-deploys in ~60 seconds.
 
