@@ -15,3 +15,7 @@ Thumbs.db
 # Source files too large for Git (keep in local storage / shared drive)
 3d map/
 Design UI/
+
+# Artist source drops (raw .blend + unpacked GLTF textures) — too large for git.
+# Only the exported public/assets/model/*.glb is committed.
+public/assets/model/updated*/

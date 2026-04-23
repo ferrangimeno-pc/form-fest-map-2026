@@ -29,7 +29,6 @@
   --color-cat-restrooms: #4A90D9;
   --color-cat-guest-services: #E53935;
   --color-cat-bars: #E91E90;
-  --color-cat-misc: #9E9E9E;
 
   /* Typography — Montserrat matches experienceform.com.
      The parent page already loads it; browser cache deduplicates.
@@ -458,7 +457,7 @@ html, body {
 
 #modal {
   width: 100%;
-  max-width: 34rem;
+  max-width: calc(34rem + 50px);
   max-height: 90vh;
   background: var(--color-bg-modal);
   border-radius: 0;
@@ -925,7 +924,7 @@ html, body {
   }
 
   #modal {
-    max-width: 26rem;
+    max-width: calc(26rem + 50px);
     max-height: none;
     height: 100%;
     border-radius: 1rem;

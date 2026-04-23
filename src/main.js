@@ -101,10 +101,20 @@ async function init() {
   // where 100dvh and safe-area calculations settle after script execution).
   await new Promise((resolve) => requestAnimationFrame(resolve));
 
-  // 10. Start render loop
+  // 10. Start render loop — capped to ~60 fps.
+  // On high-refresh-rate displays (120/144/165 Hz) Three's rAF loop would
+  // otherwise render every vsync, pegging the GPU. The visual gain above
+  // 60 fps is imperceptible for this scene; the power/heat cost is not.
+  // Cap at ~62 fps (16 ms floor) so 60 Hz monitors still hit every vsync
+  // — the `- 1` leaves slack for rAF timing jitter.
   const clock = new Clock();
-  function animate() {
+  const FRAME_MIN_MS = 1000 / 60 - 1;
+  let lastFrameTime = 0;
+
+  function animate(now = 0) {
     requestAnimationFrame(animate);
+    if (now - lastFrameTime < FRAME_MIN_MS) return;
+    lastFrameTime = now;
 
     const dt = clock.getDelta();
     const elapsed = clock.elapsedTime;
@@ -216,8 +226,18 @@ function handleCategoryChange(categoryId, scene, camera, renderer) {
 function _fitCameraToLocations(locations, camera) {
   if (locations.length === 0) return;
 
+  // Mobile portrait aspect has far less horizontal room than desktop 16:9, so
+  // every category (including single-location) is fitted via a mesh-bbox aware
+  // routine that pulls the camera back as aspect narrows. Desktop keeps its
+  // hand-tuned presets.
+  const isMobileNow = window.innerWidth < 768;
+  if (isMobileNow) {
+    _fitCameraMobile(locations, camera);
+    return;
+  }
+
   if (locations.length === 1) {
-    // Single location: fly to its preset camera position
+    // Desktop single location: fly to its preset camera position
     flyTo(camera, {
       position: locations[0].cameraPosition,
       target: locations[0].cameraTarget,
@@ -247,7 +267,7 @@ function _fitCameraToLocations(locations, camera) {
   const barFraction = Math.min(barH / screenH, 0.45);
 
   // Camera distance: pull back proportionally so all pins fit in the available viewport.
-  const span            = Math.max(spanX, spanZ, 1.5);
+  const span            = Math.max(spanX, spanZ, 1.0);
   const barCompensation = 1 / (1 - barFraction);
   const distance        = Math.min(Math.max(span * 1.7 * barCompensation + 2, 4), 14);
 
@@ -280,7 +300,73 @@ function _fitCameraToLocations(locations, camera) {
 
   flyTo(camera, {
     position: { x: camX, y: camY, z: camZ },
-    target:   { x: targetX, y: 0, z: targetZ },
+    target:   { x: targetX, y: 1.8, z: targetZ },
+  });
+}
+
+/**
+ * Mobile-only: fit camera using the union bbox of the actual meshes for every
+ * location in the category (falling back to a small box around the pin for
+ * locations with no mapped mesh). Distance scales with camera aspect so the
+ * narrow portrait viewport pulls the camera back enough to keep the meshes
+ * centered and fully visible.
+ */
+function _fitCameraMobile(locations, camera) {
+  const box = new Box3();
+  locations.forEach((loc) => {
+    let touched = false;
+    getObjectsForLocation(loc.id).forEach((name) => {
+      const mesh = getMesh(name);
+      if (mesh) { box.expandByObject(mesh); touched = true; }
+    });
+    if (!touched) {
+      const p = loc.pinPosition;
+      box.expandByPoint(new Vector3(p.x - 0.3, p.y - 0.2, p.z - 0.3));
+      box.expandByPoint(new Vector3(p.x + 0.3, p.y + 0.2, p.z + 0.3));
+    }
+  });
+  if (box.isEmpty()) return;
+
+  const size = new Vector3();   box.getSize(size);
+  const center = new Vector3(); box.getCenter(center);
+
+  // Bar compensation (category bar sits at bottom)
+  const barEl   = document.getElementById('categories-bar');
+  const barH    = barEl ? barEl.getBoundingClientRect().height : 120;
+  const screenH = container.clientHeight;
+  const barFraction     = Math.min(barH / screenH, 0.40);
+  const barCompensation = 1 / (1 - barFraction);
+
+  // Aspect-aware distance: at 45° FOV the visible half-width = dist*tan(22.5°)*aspect,
+  // half-height = dist*tan(22.5°). Camera pitch ≈ 45° NE-down so the XZ plane projects
+  // to screen with span.x → horizontal, (span.z·cos45 + span.y·sin45) → vertical.
+  const fov         = (camera.fov || 45) * Math.PI / 180;
+  const aspect      = Math.max(camera.aspect || 0.46, 0.3);
+  const tanHalfFov  = Math.tan(fov / 2);
+  const vertWorld   = size.z * Math.cos(Math.PI / 4) + size.y * Math.sin(Math.PI / 4);
+  const horizWorld  = size.x;
+  const distForWidth  = (horizWorld / 2) / (tanHalfFov * aspect);
+  const distForHeight = (vertWorld  / 2) / tanHalfFov;
+  const margin      = 1.45; // padding so mesh isn't flush against the edges
+  const distance    = Math.min(
+    Math.max(Math.max(distForWidth, distForHeight) * margin * barCompensation, 5),
+    16
+  );
+
+  // Target = bbox center, shifted toward camera so bottom bar doesn't cover content.
+  const barVertOffset = barFraction * distance * 0.35;
+  const targetX = center.x + barVertOffset * 0.707;
+  const targetZ = center.z + barVertOffset * 0.707;
+  const targetY = Math.max(center.y, 0.8); // lift above ground
+
+  // 45° NE-down camera relative to target (matches desktop view angle).
+  const camX = targetX + distance * 0.5;
+  const camY = distance * 0.9;
+  const camZ = targetZ + distance * 0.5;
+
+  flyTo(camera, {
+    position: { x: camX, y: camY, z: camZ },
+    target:   { x: targetX, y: targetY, z: targetZ },
   });
 }
 

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-/** Pool mesh name in the GLTF */
-const POOL_MESH = 'Plane';
+/** Pool mesh name in the GLTF — 4th primitive of Cube.001 (has 'water' material) */
+const POOL_MESH = 'Cube001_4';
 
 let waterMaterial = null;
 

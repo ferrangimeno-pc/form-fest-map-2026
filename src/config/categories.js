@@ -45,10 +45,4 @@ export const CATEGORIES = [
     color: '#E91E90',
     highlightColor: 0xE91E90,
   },
-  {
-    id: 'misc',
-    label: 'Misc',
-    color: '#9E9E9E',
-    highlightColor: 0x9E9E9E,
-  },
 ];

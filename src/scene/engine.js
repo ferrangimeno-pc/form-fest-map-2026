@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getDefaultCamera } from './controls.js';
 
 let renderer, scene, camera;
 let useWebGPU = false;
@@ -18,25 +19,27 @@ export async function initEngine(container) {
   // Camera — initial position depends on screen size (desktop vs mobile)
   const aspect = container.clientWidth / container.clientHeight;
   camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 100);
-  const isDesktop = container.clientWidth >= 768;
-  if (isDesktop) {
-    camera.position.set(-0.888, 4.228, 5.781);
-    camera.lookAt(0.0, 0.0, 0.0);
-  } else {
-    camera.position.set(8.083, 8.083, 8.083);
-    camera.lookAt(0, 0, 0);
-  }
+  const def = getDefaultCamera();
+  camera.position.set(def.position.x, def.position.y, def.position.z);
+  camera.lookAt(def.target.x, def.target.y, def.target.z);
 
   // Using WebGL renderer for maximum compatibility.
   // Three.js v170 WebGPU renderer requires node-based materials for lights/shadows,
   // which is incompatible with standard DirectionalLight/AmbientLight.
   // WebGPU support can be added in a future phase once Three.js stabilizes the API.
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+  // antialias:false — EffectComposer renders into its own RT, so renderer MSAA
+  // is unused but still allocates an MSAA framebuffer. SMAA (desktop) handles AA.
+  // preserveDrawingBuffer:false — we never read back the canvas; keeping it true
+  // blocks browser buffer-discard optimisations and costs a frame copy.
+  renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, preserveDrawingBuffer: false });
   useWebGPU = false;
   console.log('[Engine] Using WebGL renderer');
 
-  // Common renderer config
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Pixel ratio capped at 1.5 on both desktop and mobile. On retina/4K
+  // displays this is ~44% fewer fragments than DPR 2 with negligible
+  // visual difference once SMAA (desktop) / grain (mobile) have run.
+  const dprCap = 1.5;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, dprCap));
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -45,6 +48,12 @@ export async function initEngine(container) {
   if (renderer.shadowMap) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // The scene is static (no moving meshes) — only the sun moves, and only
+    // every ~2s in live mode. Disable auto-update so Three doesn't re-render
+    // the 2048² shadow map every frame. lighting.js flags it dirty whenever
+    // the sun position/intensity actually changes. Huge GPU save on rotate.
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true; // render shadow once at startup
   }
 
   container.appendChild(renderer.domElement);

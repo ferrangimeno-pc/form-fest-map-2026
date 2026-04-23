@@ -7,7 +7,9 @@ let flyToAnimation = null;
 // Camera limits (mobile gets more zoom-out room)
 const isMobile = () => window.innerWidth < 768;
 const LIMITS = {
-  minDistance: 4,
+  // Larger minDistance clamps how far the user can zoom in — prevents clipping
+  // into building geometry when pinching/scrolling on either breakpoint.
+  minDistance: 5,
   maxDistance: 10,
   minPolarAngle: THREE.MathUtils.degToRad(10),  // almost top-down
   maxPolarAngle: THREE.MathUtils.degToRad(75),   // never below horizon
@@ -21,29 +23,80 @@ const LIMITS = {
 
 // Default camera positions per breakpoint
 const DEFAULTS = {
-  // Desktop: wider overview of the full site
+  // Desktop: wider overview of the full site, framed on the festival core
+  // (bbox of all interactive meshes centers at ~(-3.13, -, -1.87)).
   desktop: {
-    position: { x: -0.888, y: 4.228, z: 5.781 },
-    target:   { x: 0.0,   y: 0.0,   z: 0.0   },
+    position: { x: -4.1, y: 4.3, z: 4.4 },
+    target:   { x: -3.2, y: 0.0, z: -1.4 },
   },
-  // Mobile: pulled back overview
+  // Mobile: computed dynamically in getDefaultCamera() from current viewport
+  // aspect so fluid browser widths / orientation changes always stay framed.
+  // These static values are an approximate reference for a 375x812 device.
   mobile: {
-    position: { x: 8.083, y: 8.083, z: 8.083 },
-    target:   { x: 0, y: 0, z: 0 },
+    position: { x: -4.4, y: 7.2, z: 6.1 },
+    target:   { x: -3.2, y: 0.0, z: -2.4 },
   },
 };
 
 /**
  * Return the appropriate default camera config based on screen width.
+ * Desktop uses the hand-tuned preset. Mobile is computed from the current
+ * viewport aspect so the festival core stays framed on any browser size
+ * (fluid width, orientation change, safe-area shifts).
  */
 export function getDefaultCamera() {
-  return window.innerWidth >= 768 ? DEFAULTS.desktop : DEFAULTS.mobile;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  if (w >= 768) return DEFAULTS.desktop;
+
+  // Mobile: camera rotated ~20° clockwise and pitched down to 45° so the
+  // festival's long NE↔SW diagonal aligns with the portrait viewport's vertical
+  // axis. That shrinks the content's *horizontal* screen span from ~9.6 units
+  // (at yaw -8°) to ~5.25, which fits mobile portrait aspects with moderate
+  // distance and without heavy horizontal cropping.
+  //
+  // Interactive content spans:
+  //   x ∈ [-8.81, -0.39], z ∈ [-7.83, +1.18], y ∈ [0.3, 1.7]
+  const fov    = 45 * Math.PI / 180;
+  const pitch  = 45 * Math.PI / 180;
+  const yaw    = 20 * Math.PI / 180;
+  const aspect = Math.max(w / h, 0.35);
+
+  // Precomputed screen-space spans for the NE-camera at pitch 45°, yaw +20°.
+  // Horizontal ≈ 5.25 (pool/cafe on one side, car-camping on the other),
+  // Vertical ≈ 7.93 (car-camping top → cafe/foundry bottom after projection).
+  const horizontalScreenSpan = 5.25;
+  const verticalScreenSpan   = 7.93;
+
+  const distH = (horizontalScreenSpan / 2) / (Math.tan(fov / 2) * aspect);
+  const distV = (verticalScreenSpan   / 2) /  Math.tan(fov / 2);
+
+  // 40% margin — wider breathing room around content.
+  const distance = Math.min(Math.max(Math.max(distH, distV) * 1.40, 12), 24);
+
+  // Target = interactive-content midpoint, lifted slightly so the vertical
+  // centre of the content (car-camping above target, cafe below) lands at
+  // viewport center.
+  const tx = -4.6, ty = 0.8, tz = -3.3;
+  const camY  = distance * Math.sin(pitch);
+  const horiz = distance * Math.cos(pitch);
+  const dx    = horiz * Math.sin(yaw);
+  const dz    = horiz * Math.cos(yaw);
+
+  return {
+    position: { x: tx + dx, y: camY, z: tz + dz },
+    target:   { x: tx,      y: ty,   z: tz      },
+  };
 }
 
 // Pan boundaries (keep map in view)
+// Scene extent: x[-15.67, 7.71] z[-12.29, 10.90]
+// Interactive targets span x[-7.84 (RVs) → 0 (pool)] z[-8.13 (RVs) → 1.21 (cafe)].
+// Bounds widened so fly-to the southern cluster (camping, glamping, glamping-rvs)
+// and the eastern stages can actually complete without clamping the target.
 const PAN_BOUNDS = {
-  min: new THREE.Vector3(-6, -1, -6),
-  max: new THREE.Vector3(6, 3, 6),
+  min: new THREE.Vector3(-10, -1, -10),
+  max: new THREE.Vector3(4, 3, 4),
 };
 
 /**
@@ -57,7 +110,9 @@ export function initControls(camera, domElement) {
 
   // Apply limits — mobile gets more zoom-out headroom
   controls.minDistance = LIMITS.minDistance;
-  controls.maxDistance = isMobile() ? 16 : LIMITS.maxDistance;
+  // Mobile portrait aspect needs room for much larger distances so the whole
+  // festival can fit horizontally (see getDefaultCamera computation).
+  controls.maxDistance = isMobile() ? 26 : LIMITS.maxDistance;
   controls.minPolarAngle = LIMITS.minPolarAngle;
   controls.maxPolarAngle = LIMITS.maxPolarAngle;
   controls.enablePan = LIMITS.enablePan;

@@ -9,15 +9,23 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 
 /**
- * Earth-tone color grading shader.
- * Warms highlights, adds ochre/sienna to midtones, cools shadows slightly.
+ * Earth-tone color grading + animated film grain (combined in one ShaderPass).
+ *
+ * Order inside the fragment shader:
+ *   sample → contrast → warm/cool tint → saturation → grain (midtone-masked).
+ *
+ * Combining these saves one full-screen RT copy per frame. SMAA, when enabled
+ * on desktop, runs BEFORE this pass so its edge detection never sees grain.
  */
 const EarthColorGrading = {
   uniforms: {
-    tDiffuse: { value: null },
-    warmth: { value: 0.12 },        // warm shift intensity
-    contrast: { value: 1.08 },      // subtle contrast boost
-    saturation: { value: 1.05 },    // slight saturation lift
+    tDiffuse:      { value: null },
+    warmth:        { value: 0.12 },       // warm shift intensity
+    contrast:      { value: 1.08 },       // subtle contrast boost
+    saturation:    { value: 1.05 },       // slight saturation lift
+    uTime:         { value: 0 },          // animates the grain
+    uGrainIntensity:{ value: 0.05 },      // subtle filmic grain — SMAA on
+                                          // desktop handles sharp-edge AA
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -31,11 +39,17 @@ const EarthColorGrading = {
     uniform float warmth;
     uniform float contrast;
     uniform float saturation;
+    uniform float uTime;
+    uniform float uGrainIntensity;
     varying vec2 vUv;
 
     vec3 adjustSaturation(vec3 color, float sat) {
       float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
       return mix(vec3(luma), color, sat);
+    }
+
+    float random(vec2 p) {
+      return fract(sin(dot(p + fract(uTime * 0.01), vec2(12.9898, 78.233))) * 43758.5453);
     }
 
     void main() {
@@ -55,6 +69,12 @@ const EarthColorGrading = {
       // Saturation
       color = adjustSaturation(color, saturation);
 
+      // Film grain — midtone-masked so it fades in shadows/highlights
+      float grain  = random(vUv) * uGrainIntensity;
+      float gLuma  = dot(color, vec3(0.299, 0.587, 0.114));
+      float gMask  = gLuma * (1.0 - gLuma) * 4.0;
+      color += (grain - uGrainIntensity * 0.5) * gMask;
+
       // Clamp
       color = clamp(color, 0.0, 1.0);
 
@@ -63,53 +83,13 @@ const EarthColorGrading = {
   `,
 };
 
-/**
- * Animated film grain shader.
- * Adds per-frame random noise weighted toward midtones (less visible in shadows/highlights).
- */
-const FilmGrain = {
-  uniforms: {
-    tDiffuse:   { value: null },
-    uTime:      { value: 0 },
-    uIntensity: { value: 0.055 },
-  },
-  vertexShader: /* glsl */ `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse;
-    uniform float uTime;
-    uniform float uIntensity;
-    varying vec2 vUv;
-
-    float random(vec2 p) {
-      return fract(sin(dot(p + fract(uTime * 0.01), vec2(12.9898, 78.233))) * 43758.5453);
-    }
-
-    void main() {
-      vec4 texel = texture2D(tDiffuse, vUv);
-      float grain = random(vUv) * uIntensity;
-
-      // Weight grain to midtones — fades in shadows and highlights
-      float luma = dot(texel.rgb, vec3(0.299, 0.587, 0.114));
-      float mask = luma * (1.0 - luma) * 4.0;
-
-      texel.rgb += (grain - uIntensity * 0.5) * mask;
-      gl_FragColor = texel;
-    }
-  `,
-};
-
 let composer = null;
-let grainPass = null;
+let colorGradePass = null;  // also carries the film grain uniforms (merged pass)
 let bloomPass = null;
 
 /**
- * Initialize post-processing pipeline with bloom + color grading.
+ * Initialize post-processing pipeline.
+ * Passes: Render → Bloom(¼) → [SMAA desktop only] → ColorGrade+Grain → Output.
  */
 export function initPostProcessing(renderer, scene, camera) {
   composer = new EffectComposer(renderer);
@@ -121,27 +101,33 @@ export function initPostProcessing(renderer, scene, camera) {
   const renderPass = new RenderPass(scene, camera);
   composer.addPass(renderPass);
 
-  // Bloom — subtle glow on bright highlights (half resolution for GPU savings)
+  // Bloom — subtle glow on bright highlights (quarter resolution for GPU savings).
+  // UnrealBloomPass does 5 mip-level gaussian blurs — all scale with input size.
+  // The bloom is already soft/atmospheric, so a quarter-res input is visually
+  // indistinguishable from half but ~4× cheaper in fragment work.
   bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(Math.floor(size.x / 2), Math.floor(size.y / 2)),
+    new THREE.Vector2(Math.floor(size.x / 4), Math.floor(size.y / 4)),
     0.40,   // strength
     0.55,   // radius
     0.65    // threshold
   );
   composer.addPass(bloomPass);
 
-  // Color grading — earth tones
-  const colorGradePass = new ShaderPass(EarthColorGrading);
+  // SMAA on desktop only — 3 sub-passes at full DPR is too expensive on
+  // mobile, where the grain + smaller screen + DPR 1.5 cap hide aliasing
+  // well enough. Added BEFORE the color-grade+grain pass so SMAA edge
+  // detection only sees clean geometry, not grain noise.
+  const isMobile = window.innerWidth < 768;
+  let smaaPass = null;
+  if (!isMobile) {
+    smaaPass = new SMAAPass(size.x, size.y);
+    composer.addPass(smaaPass);
+  }
+
+  // Color grading + film grain — merged into one ShaderPass.
+  // Grain animates via the uTime uniform updated in renderPostProcessing().
+  colorGradePass = new ShaderPass(EarthColorGrading);
   composer.addPass(colorGradePass);
-
-  // SMAA — runs before film grain so it only sees clean geometry edges,
-  // not the grain noise (which would cause it to smear random pixels as "edges")
-  const smaaPass = new SMAAPass(size.x, size.y);
-  composer.addPass(smaaPass);
-
-  // Film grain — added last so SMAA never processes it
-  grainPass = new ShaderPass(FilmGrain);
-  composer.addPass(grainPass);
 
   // Output pass — handles tone mapping + color space conversion
   const outputPass = new OutputPass();
@@ -150,8 +136,8 @@ export function initPostProcessing(renderer, scene, camera) {
   // Handle resize — driven by engine.js ResizeObserver (container-relative, not window)
   onResizeSubscribe((w, h) => {
     composer.setSize(w, h);
-    bloomPass.setSize(Math.floor(w / 2), Math.floor(h / 2));
-    smaaPass.setSize(w, h);
+    bloomPass.setSize(Math.floor(w / 4), Math.floor(h / 4));
+    if (smaaPass) smaaPass.setSize(w, h);
   });
 
   return composer;
@@ -162,8 +148,8 @@ export function initPostProcessing(renderer, scene, camera) {
  * @param {number} elapsedTime - total elapsed seconds (for grain animation)
  */
 export function renderPostProcessing(elapsedTime = 0) {
-  if (grainPass) {
-    grainPass.uniforms.uTime.value = elapsedTime;
+  if (colorGradePass) {
+    colorGradePass.uniforms.uTime.value = elapsedTime;
   }
   if (composer) {
     composer.render();
