@@ -9,9 +9,6 @@ dist/
 Thumbs.db
 *.log
 
-# Local editor / session data
-.claude/
-
 # Source files too large for Git (keep in local storage / shared drive)
 3d map/
 Design UI/
