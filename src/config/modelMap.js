@@ -1,82 +1,112 @@
 /**
- * Maps GLTF mesh names → location IDs.
- * Multi-material meshes load as separate objects with _1, _2, _3 suffixes.
- * All variants of the same building are mapped to the same location.
+ * Maps RUNTIME mesh names → location IDs.
+ *
+ * These are the names Three.js GLTFLoader produces at runtime, NOT the raw
+ * GLTF node names. Naming rules (see GLTFLoader.js):
+ *   - Single-prim nodes: final Mesh.name = NODE name (line 4279 override).
+ *   - Multi-prim nodes: each child Mesh.name = MESH name with a shared
+ *     createUniqueName counter suffix (`base`, `_1`, `_2`, …). The counter
+ *     is shared with nodeName reservations, so a prior reservation can
+ *     push prims to start at `_1`.
+ *
+ * Source of truth for verifying a swap: run `npm run validate-model` and
+ * load the map in the browser. See memory/glb_mesh_map.md for the full
+ * reference.
  */
 export const MODEL_MAP = {
-  // --- Stages ---
-  'Roundcube':    'apse',
-  'Roundcube001': 'apse',
-  'Cylinder001':  'amphitheater',
-  'Cylinder':     'amphitheater',   // inner cylinder of amphitheater bowl
-  'Cube001_1':    'amphitheater',   // adjacent building — grouped to reduce hover glitch
-  'Cube001_2':    'amphitheater',
-  'Cube001_3':    'amphitheater',
-  'Plane':      'pool',        // blue water surface of the pool
-  'Cube002_1':  'pool',        // pool building structure
-  'Cube002_2':  'pool',
-  'Cube002_3':  'pool',
-  'Circle':       'envelop',        // bowl/dish shape of Envelop stage
-  'Cylinder002_1': 'vaults',
-  'Cylinder002_2': 'vaults',
+  // ── STAGES ───────────────────────────────────────────────────────────────
+  'Roundcube_1':      'apse',
+  'Roundcube_2':      'apse',
+  'Roundcube001_1':   'apse',
+  'Roundcube001_2':   'apse',
+  'Cylinder':         'amphitheater',
+  'Cylinder001':      'amphitheater',
+  'Cube_1':           'amphitheater',
+  'Cube_2':           'amphitheater',
+  'Cube_3':           'amphitheater',
+  'Cube001_1':        'pool',
+  'Cube001_2':        'pool',
+  'Cube001_3':        'pool',
+  'Cube001_4':        'pool',          // water shader target (water.js)
+  'Cylinder002_1':    'vaults',
+  'Cylinder002_2':    'vaults',
+  // Envelop — shade/gazebo structure in front of the amphitheater (node
+  // "Hill Shades", single-prim, mesh Cube.018).
+  'Hill_Shades':      'envelop',
 
-  // --- Food ---
-  'Cube003': 'cafe',
-  'Cube004': 'cafe',
-  'Cube005': 'cafe',
-  'Cube006': 'cafe',
-  'Cube007': 'cafe',
+  // ── FOOD ─────────────────────────────────────────────────────────────────
+  'Cube002_1':        'cafe',
+  'Cube002_2':        'cafe',
+  // Three GLTF nodes (Cube.003/.004/.006) share mesh "Cube.005" → 6 runtime prims.
+  // NOTE: in the 23/04/2026 model, "Cube.003"/".004" are ALSO used as mesh names
+  // by the BarLocation.* nodes, but their node reservations pre-claim those slots.
+  'Cube005':          'cafe',
+  'Cube005_1':        'cafe',
+  'Cube005_2':        'cafe',
+  'Cube005_3':        'cafe',
+  'Cube005_4':        'cafe',
+  'Cube005_5':        'cafe',
   'maposm_buildings009_1': 'cafe',
   'maposm_buildings009_2': 'cafe',
   'maposm_buildings009_3': 'cafe',
-  'Roundcube002':  'foundry',
-  'Roundcube003':  'foundry',
-  'Roundcube004':  'foundry',
-  'Cone001':       'bodega',
+  'Roundcube002_1':   'foundry',
+  'Roundcube002_2':   'foundry',
+  'Roundcube003_1':   'foundry',
+  'Roundcube003_2':   'foundry',
+  'Roundcube004':     'foundry',
+  // Bodega — node "Large Tent" uses mesh "Cone.001" (single-prim).
+  // Three.js sanitizeNodeName() converts the space to underscore.
+  'Large_Tent':       'bodega',
 
-  // --- Shop ---
+  // ── SHOP — same mesh as the GitHub release: map.osm_buildings.008 (3 prims)
+  // at scaled (-4.03, 1.40, -0.55).
   'maposm_buildings008_1': 'shop',
   'maposm_buildings008_2': 'shop',
   'maposm_buildings008_3': 'shop',
 
-  // --- Camping ---
-  'PF_Pickup_Low': 'camping',
-  'Cube011_1':     'glamping-rvs',
-  'Cube011_2':     'glamping-rvs',
-  'Cube009_1':     'glamping',
-  'Cube009_2':     'glamping',
-  'Cone':          'glamping',
+  // ── GLAMPING — single-prim node "Placement_CampingTents" (mesh "Vert")
+  // (renamed from the previous "camping" location).
+  // Stray `CampingTent` cone is hidden via HIDDEN_MESHES in model.js.
+  'Placement_CampingTents': 'glamping',
 
-  // --- Restrooms ---
-  'BathroomGA002': 'restrooms-1',
-  'BathroomGA003': 'restrooms-1',
-  'BathroomGA012': 'restrooms-2',
-  'BathroomGA001': 'restrooms-2',
+  // ── GLAMPING RVs — van cluster from node "Placement_ParkingLot.001" ──────
+  // (mesh "Cube.017", 2 prims) at scaled (-6.22, 1.30, -5.48). The old 11-vehicle
+  // cluster is now hidden via HIDDEN_MESHES (residual from previous export).
+  'Cube017':          'glamping-rvs',
+  'Cube017_1':        'glamping-rvs',
 
-  // --- Guest Services ---
-  'maposm_buildings001':   'guest-services',
-  'maposm_buildings001_1': 'guest-services',
-  'maposm_buildings001_2': 'guest-services',
+  // ── CAR CAMPING — parking-lot surface at the northern edge of the site
+  // (single-prim node "Placement_ParkingLot", scaled center ~(-8.81, 1.32, -7.83)).
+  'Placement_ParkingLot': 'car-camping',
 
-  // --- Bars ---
-  'Cube010_1': 'bar-1',
-  'Cube010_2': 'bar-1',
-  'Cube008_1': 'bar-2',
-  'Cube008_2': 'bar-2',
+  // ── RESTROOMS ────────────────────────────────────────────────────────────
+  'BathroomGA002':    'restrooms-1',
+  'BathroomGA003':    'restrooms-1',
+  'BathroomGA012':    'restrooms-2',
+  'BathroomGA001':    'restrooms-2',
+
+  // ── GUEST SERVICES — GS sub-cluster of map.osm_buildings.011 ─────────────
+  // The 011 GLTF node spans 3 separate building groups. model.js splits it at
+  // load time into _gs (the road-junction cluster near bodega) and _nonGS.
+  'maposm_buildings011_1_gs': 'guest-services',
+  'maposm_buildings011_2_gs': 'guest-services',
+  'maposm_buildings011_3_gs': 'guest-services',
+
+  // ── BARS — two explicit BarLocation nodes in the 23/04/2026 model ────────
+  // bar-1: BarLocation.000 (mesh Cube.003, 2 prims)
+  'Cube003_1':        'bar-1',
+  'Cube003_2':        'bar-1',
+  // bar-2: BarLocation.001 (mesh Cube.004, 2 prims)
+  'Cube004_1':        'bar-2',
+  'Cube004_2':        'bar-2',
 };
 
-/**
- * Reverse lookup: locationId → array of mesh names.
- */
 export function getObjectsForLocation(locationId) {
   return Object.entries(MODEL_MAP)
     .filter(([, id]) => id === locationId)
     .map(([objName]) => objName);
 }
 
-/**
- * Get locationId from a mesh name.
- */
 export function getLocationForObject(objectName) {
   return MODEL_MAP[objectName] || null;
 }

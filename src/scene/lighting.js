@@ -106,7 +106,7 @@ export async function initLighting(scene, renderer, onProgress) {
   sunLight.shadow.camera.top = 8;
   sunLight.shadow.camera.bottom = -8;
   sunLight.shadow.bias = -0.001;
-  sunLight.shadow.normalBias = 0.035;
+  sunLight.shadow.normalBias = 0.02;
   sunLight.shadow.radius = 2;
 
   scene.add(sunLight);
@@ -228,6 +228,10 @@ function applyPreset(preset, renderer) {
   sunLight.intensity = preset.intensity;
   sunLight.position.copy(sunPositionFromAngles(preset.elevation, preset.azimuth));
   sunLight.shadow.opacity = preset.shadowOpacity;
+
+  // Shadow auto-update is disabled in engine.js — re-render the shadow map
+  // whenever the sun actually changes (mode switch, lerp, live 2s refresh).
+  if (renderer?.shadowMap) renderer.shadowMap.needsUpdate = true;
 
   ambientLight.color.copy(preset.ambientColor);
   ambientLight.intensity = preset.ambientIntensity;
@@ -370,14 +374,22 @@ export function getSunLight() { return sunLight; }
 export function getAmbientLight() { return ambientLight; }
 export function getCurrentMode() { return currentMode; }
 
-export function setSunElevation(value) {
-  _currentElevation = value;
-  if (sunLight) sunLight.position.copy(sunPositionFromAngles(_currentElevation, _currentAzimuth));
+/** Force one shadow-map refresh. Call after any dev-panel tweak that moves
+ *  the sun or changes a shadow-casting property. */
+export function requestShadowUpdate(renderer) {
+  if (renderer?.shadowMap) renderer.shadowMap.needsUpdate = true;
 }
 
-export function setSunAzimuth(value) {
+export function setSunElevation(value, renderer) {
+  _currentElevation = value;
+  if (sunLight) sunLight.position.copy(sunPositionFromAngles(_currentElevation, _currentAzimuth));
+  requestShadowUpdate(renderer);
+}
+
+export function setSunAzimuth(value, renderer) {
   _currentAzimuth = value;
   if (sunLight) sunLight.position.copy(sunPositionFromAngles(_currentElevation, _currentAzimuth));
+  requestShadowUpdate(renderer);
 }
 
 export function setSunColor(hex) {

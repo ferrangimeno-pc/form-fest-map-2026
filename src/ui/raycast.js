@@ -40,9 +40,11 @@ let _mouseDirty = false;
 let _lastMouseX = 0;
 let _lastMouseY = 0;
 
-// Mouse: ignore drags (> 6 px travel between mousedown and click)
-let _mouseDownX = 0;
-let _mouseDownY = 0;
+// Mouse/pen: ignore drags (> 6 px travel between pointerdown and click).
+// Sentinel NaN means "no pointerdown seen" → accept the click (some touch-emulation
+// paths deliver a synthetic click without a matching down).
+let _mouseDownX = NaN;
+let _mouseDownY = NaN;
 const MOUSE_SLOP = 6;
 
 // Last known client coords — needed for screen-space proximity fallback
@@ -69,11 +71,16 @@ export function initRaycast(container, scene, camera, locationsData, onBuildingC
   _locationsData   = locationsData;
   _onBuildingClick = onBuildingClick;
 
-  container.addEventListener('mousedown',  _onMouseDown);
-  container.addEventListener('mousemove',  _onMouseMove);
-  container.addEventListener('click',      _onClick);
-  container.addEventListener('touchstart', _onTouchStart, { passive: true });
-  container.addEventListener('touchend',   _onTouchEnd,   { passive: true });
+  // pointerdown fires for mouse, pen, AND touch uniformly, and (unlike mousedown)
+  // is not suppressed when OrbitControls calls preventDefault on its own pointer
+  // stream — critical for Chrome DevTools mobile emulation and touch devices,
+  // where mousedown would otherwise never reach us and the click-drag-slop check
+  // would drop the click entirely (pool mesh click-through bug).
+  container.addEventListener('pointerdown', _onMouseDown);
+  container.addEventListener('mousemove',   _onMouseMove);
+  container.addEventListener('click',       _onClick);
+  container.addEventListener('touchstart',  _onTouchStart, { passive: true });
+  container.addEventListener('touchend',    _onTouchEnd,   { passive: true });
 }
 
 /**
@@ -325,10 +332,14 @@ function _onMouseDown(e) {
 function _onClick(e) {
   // Ignore clicks that originated on UI elements (buttons, overlays, etc.)
   if (!e.target.closest('canvas')) return;
-  // Ignore if the mouse travelled more than MOUSE_SLOP pixels — it was a drag
-  const dx = e.clientX - _mouseDownX;
-  const dy = e.clientY - _mouseDownY;
-  if (Math.sqrt(dx * dx + dy * dy) > MOUSE_SLOP) return;
+  // Ignore if the pointer travelled more than MOUSE_SLOP pixels — it was a drag.
+  // Skip the check when we never saw a pointerdown (NaN sentinel): some synthetic
+  // click paths (Chrome mobile emulation, assistive tech) skip pointerdown entirely.
+  if (!Number.isNaN(_mouseDownX)) {
+    const dx = e.clientX - _mouseDownX;
+    const dy = e.clientY - _mouseDownY;
+    if (Math.sqrt(dx * dx + dy * dy) > MOUSE_SLOP) return;
+  }
   const { x, y } = _ndcFromClient(e.clientX, e.clientY);
   const hit = _raycastLocation(x, y, e.clientX, e.clientY);
   if (hit && _onBuildingClick) _onBuildingClick(hit.locationId);
