@@ -46,6 +46,13 @@ export const MODEL_MAP = {
   'Cube005_3':        'cafe',
   'Cube005_4':        'cafe',
   'Cube005_5':        'cafe',
+  // OSM background footprint adjacent to the cafe cluster.
+  // Naming quirk: GLTF node is "map.osm_buildings.004" but its mesh-def is
+  // named "map.osm_buildings.009" — Three.js names the multi-prim children
+  // after the mesh-def, so runtime keys are `maposm_buildings009_N` even
+  // though the visual footprint sits at the cafe (verified at runtime:
+  // bbox center -5.71, 0.93 vs cafe pin -6.07, 0.88). DO NOT change to
+  // `maposm_buildings004_N` — those keys don't exist at runtime.
   'maposm_buildings009_1': 'cafe',
   'maposm_buildings009_2': 'cafe',
   'maposm_buildings009_3': 'cafe',

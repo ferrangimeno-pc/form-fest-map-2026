@@ -42,6 +42,9 @@ export function showPins(locations, scene, onClick) {
   locations.forEach((loc) => {
     const el = document.createElement('div');
     el.className = 'pin-label';
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', `Open ${loc.name}`);
+    el.setAttribute('tabindex', '0');
     el.innerHTML = `<span class="pin-label__text">${loc.name}</span><svg class="pin-label__arrow" width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 1L9 6L4 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     el.style.pointerEvents = 'auto';
 
@@ -89,6 +92,9 @@ export function showHoverPin(location, onClick) {
   // No animation class yet — element starts invisible while renderPins
   // locks it into the correct screen position for one full paint cycle.
   el.className = 'pin-label';
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', `Open ${location.name}`);
+  el.setAttribute('tabindex', '0');
   el.style.opacity = '0';
   el.style.pointerEvents = 'auto';
 

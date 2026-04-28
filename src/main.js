@@ -5,7 +5,7 @@ import { initWater, updateWater, updateWaterLighting } from './scene/water.js';
 import { initLighting, updateLighting, updateFogForDistance, getSunLight, getCurrentMode, LIGHT_MODES, setExposure } from './scene/lighting.js';
 import { initControls, updateControls, flyTo, resetCamera, getControls } from './scene/controls.js';
 import { initPostProcessing, renderPostProcessing, updateBloomForDistance, setCategoryBloom, tickBloomLerp } from './scene/postprocessing.js';
-import { updateProgress, hideLoader } from './ui/loader.js';
+import { updateProgress, hideLoader, showLoaderError } from './ui/loader.js';
 import { initCategories } from './ui/categories.js';
 import { initPinRenderer, showPins, hidePins, renderPins } from './ui/pins.js';
 import { initModal, openModal } from './ui/modal.js';
@@ -26,7 +26,22 @@ import locationsData from './data/locations.json';
 
 const container = document.getElementById('map-container');
 
+/** Probe for WebGL (1 or 2). Some embedded webviews / very old browsers lack it. */
+function hasWebGL() {
+  try {
+    const c = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')));
+  } catch (e) {
+    return false;
+  }
+}
+
 async function init() {
+  // 0. Bail early if WebGL isn't available — showLoaderError surfaces the message.
+  if (!hasWebGL()) {
+    throw new Error("Your browser doesn't support 3D graphics. Try a modern browser like Chrome, Edge, Firefox, or Safari.");
+  }
+
   // 1. Initialize engine (renderer, scene, camera)
   const { renderer, scene, camera, isWebGPU } = await initEngine(container);
 
@@ -373,6 +388,5 @@ function _fitCameraMobile(locations, camera) {
 // Boot
 init().catch((err) => {
   console.error('[Main] Initialization failed:', err);
-  const textEl = document.getElementById('loader-text');
-  if (textEl) textEl.textContent = 'Failed to load map. Please refresh.';
+  showLoaderError(err);
 });
