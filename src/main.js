@@ -26,6 +26,20 @@ import locationsData from './data/locations.json';
 
 const container = document.getElementById('map-container');
 
+// Touch devices have no hover state, so the "tap building → modal opens with no
+// map context" experience is disorienting. On touch we render every pin from the
+// start so users can see what they're tapping. Desktop/mouse users keep the
+// existing reveal-on-category UX.
+const IS_TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+function showAllPinsForTouch(scene) {
+  if (!IS_TOUCH) return;
+  showPins(locationsData.locations, scene, (locationId) => {
+    const location = locationsData.locations.find((l) => l.id === locationId);
+    if (location) openModal(location);
+  });
+}
+
 /** Probe for WebGL (1 or 2). Some embedded webviews / very old browsers lack it. */
 function hasWebGL() {
   try {
@@ -96,6 +110,9 @@ async function init() {
 
   // 6b. Apply default 25% category-color tint to all clickable buildings
   applyIdleTints();
+
+  // Touch devices: pre-render all pins so users see tap targets.
+  showAllPinsForTouch(scene);
 
   // 7. Hide loader, then reveal entry overlay
   hideLoader();
@@ -177,6 +194,8 @@ function handleCategoryChange(categoryId, scene, camera, renderer) {
     setCategoryBloom(false);
     if (getCurrentMode() === LIGHT_MODES.NIGHT) setExposure(renderer, 0.72);
     resetCamera(camera);
+    // Touch: bring the full pin set back when leaving a category.
+    showAllPinsForTouch(scene);
     return;
   }
 
