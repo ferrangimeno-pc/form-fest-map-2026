@@ -202,7 +202,6 @@ public/
   assets/
     model/formFestMap.glb  — 3D model (2.5 MB, Draco compressed)
     hdri/desert_2k.hdr     — HDRI environment map (1.4 MB)
-    hdri/desert.hdr        — higher-res HDRI (5.5 MB, unused at runtime)
     photos/                — location photos (create this folder when adding the first JPG)
     icons/                 — mouse SVG icons for desktop controls legend
   draco/                   — Draco WASM decoder (do not modify)
