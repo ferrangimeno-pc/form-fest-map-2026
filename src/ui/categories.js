@@ -13,9 +13,11 @@ export function initCategories(onChange) {
 
   CATEGORIES.forEach((cat) => {
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'cat-btn';
     btn.textContent = cat.label;
     btn.dataset.category = cat.id;
+    btn.setAttribute('aria-label', `Filter by ${cat.label}`);
     btn.setAttribute('aria-pressed', 'false');
 
     btn.addEventListener('click', () => {
