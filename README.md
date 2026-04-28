@@ -6,6 +6,43 @@ Interactive WebGL site map for [experienceform.com](https://www.experienceform.c
 
 ---
 
+## For the Client — What You Need to Provide
+
+Everything that needs to come from the client lives in **one file** plus **one folder**. A developer will paste your content into the right place — you don't need to touch code.
+
+What we need, per location ([CONTENT-CHECKLIST.md](CONTENT-CHECKLIST.md) tracks each one):
+
+1. **Photo** — one landscape JPG per location, ~1600×900 ideal, < 300 KB. Filename: `<location-id>.jpg` (the IDs are in the checklist).
+2. **Description copy** — short paragraphs to replace the placeholder text. Sections are typically `HISTORY` + `NEW IN 2026` for stages, `ABOUT` for everything else.
+3. **Programming** (stages only) — list of `time` + `artist` per slot.
+4. **Bar names** — confirm whether `Bar 1` / `Bar 2` should be renamed (e.g. "Sunset Bar", "Vault Bar") and whether more bars exist.
+
+### Example of one fully-filled location
+
+```json
+{
+  "id": "amphitheater",
+  "name": "Amphitheater",
+  "category": "stages",
+  "photo": "assets/photos/amphitheater.jpg",
+  "sections": [
+    { "title": "HISTORY", "body": "Built in 1972 as part of Paolo Soleri's original Arcosanti vision, the Amphitheater hosts our largest sunset performances under the open sky." },
+    { "title": "NEW IN 2026", "body": "A redesigned soundstage and tiered seating expand capacity to 2,400, with new lighting rigs from Berlin-based studio Fluss." }
+  ],
+  "programming": [
+    { "time": "6:00 PM", "artist": "Caterina Barbieri" },
+    { "time": "8:30 PM", "artist": "Floating Points (live)" },
+    { "time": "11:00 PM", "artist": "Nicolas Jaar" }
+  ]
+}
+```
+
+> The `id`, `category`, `pinPosition`, `cameraTarget`, `cameraPosition` fields are technical and **must not be changed by the client** — they control where the building sits on the map.
+
+Send copy/photos as a Google Doc, Notion page, Figma frame, or zip — whatever's easiest. The dev will commit them.
+
+---
+
 ## Tech Stack
 
 - **Three.js r170** — WebGL renderer, GLTF/GLB loading, OrbitControls, raycasting
@@ -127,7 +164,7 @@ When an updated GLB is delivered:
    This cross-checks every mesh name in the GLB against the code's dependencies. Exit 0 = ready. Exit 1 = mesh names changed — the report tells you exactly what to update.
 3. If mesh names changed, update `src/config/modelMap.js`
 4. If the model origin or scale changed, update world-space coordinates in `src/data/locations.json` (`pinPosition`, `cameraTarget`, `cameraPosition`)
-5. Rebuild and verify with `npm run dev` — use the `?dev` URL parameter to show mesh labels overlaid on the 3D scene
+5. Rebuild and verify with `npm run dev` — mesh labels are overlaid on the 3D scene automatically in dev mode (auto-stripped from production builds)
 
 The validator understands Three.js's internal name sanitization (dot-stripping, multi-material suffixes) so you're comparing against the same names the runtime uses, not the raw Blender names.
 
@@ -166,9 +203,8 @@ public/
     model/formFestMap.glb  — 3D model (2.5 MB, Draco compressed)
     hdri/desert_2k.hdr     — HDRI environment map (1.4 MB)
     hdri/desert.hdr        — higher-res HDRI (5.5 MB, unused at runtime)
-    photos/                — location photos (add here)
+    photos/                — location photos (create this folder when adding the first JPG)
     icons/                 — mouse SVG icons for desktop controls legend
-    fonts/                 — (reserved — Montserrat currently loads from Google Fonts)
   draco/                   — Draco WASM decoder (do not modify)
 
 scripts/
