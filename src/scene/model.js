@@ -205,8 +205,10 @@ export async function loadModel(scene, onProgress) {
           mesh.userData.originalMaterial = newMat.clone();
         });
 
-        console.log(`[Model] Loaded. Meshes indexed: ${Object.keys(meshes).length}`);
-        if (import.meta.env.DEV) console.log('[Model] Mesh names:', Object.keys(meshes));
+        if (import.meta.env.DEV) {
+          console.log(`[Model] Loaded. Meshes indexed: ${Object.keys(meshes).length}`);
+          console.log('[Model] Mesh names:', Object.keys(meshes));
+        }
 
         if (onProgress) onProgress(1);
         resolve(modelRoot);

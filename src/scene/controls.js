@@ -142,7 +142,7 @@ export function initControls(camera, domElement) {
   controls.target.set(def.target.x, def.target.y, def.target.z);
   controls.update();
 
-  console.log('[Controls] OrbitControls initialized with limits');
+  if (import.meta.env.DEV) console.log('[Controls] OrbitControls initialized with limits');
   return controls;
 }
 
