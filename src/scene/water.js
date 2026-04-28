@@ -136,7 +136,7 @@ export function initWater(getMeshFn) {
   // Prevent restoreAllMeshes / dimMeshesExcept from overwriting the water shader
   poolMesh.userData.protectedMaterial = true;
 
-  console.log('[Water] Animated water material applied to', POOL_MESH);
+  if (import.meta.env.DEV) console.log('[Water] Animated water material applied to', POOL_MESH);
 }
 
 /**

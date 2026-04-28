@@ -33,7 +33,7 @@ export async function initEngine(container) {
   // blocks browser buffer-discard optimisations and costs a frame copy.
   renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, preserveDrawingBuffer: false });
   useWebGPU = false;
-  console.log('[Engine] Using WebGL renderer');
+  if (import.meta.env.DEV) console.log('[Engine] Using WebGL renderer');
 
   // Pixel ratio capped at 1.5 on both desktop and mobile. On retina/4K
   // displays this is ~44% fewer fragments than DPR 2 with negligible

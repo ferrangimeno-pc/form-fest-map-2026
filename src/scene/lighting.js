@@ -119,7 +119,7 @@ export async function initLighting(scene, renderer, onProgress) {
   // Apply initial lighting state
   applyLightMode(LIGHT_MODES.LIVE, renderer);
 
-  console.log('[Lighting] HDRI + sun light initialized');
+  if (import.meta.env.DEV) console.log('[Lighting] HDRI + sun light initialized');
 }
 
 /**
