@@ -34,7 +34,11 @@ const IS_TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matche
 
 function showAllPinsForTouch(scene) {
   if (!IS_TOUCH) return;
-  showPins(locationsData.locations, scene, (locationId) => {
+  // Skip `secondary` locations (dual-section identities like "Grab and Go" that
+  // share a mesh/position with a primary pin) so they don't overlap by default.
+  // They surface when their own category is selected.
+  const pinnable = locationsData.locations.filter((l) => !l.secondary);
+  showPins(pinnable, scene, (locationId) => {
     const location = locationsData.locations.find((l) => l.id === locationId);
     if (location) openModal(location);
   });
