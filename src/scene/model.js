@@ -50,6 +50,25 @@ function needsDoubleSide(mesh) {
 }
 
 /**
+ * The self-shadowing terrain mesh — its back faces cast shadows so slopes shadow
+ * themselves. Every other mesh casts from front faces (half the shadow fragments).
+ */
+const TERRAIN_SELFSHADOW_MESH = 'Terrain_Step_Terrace_CamCrop';
+
+/**
+ * Per-mesh render/shadow side. Centralised so material operations (tint, highlight,
+ * dim, restore) preserve the FrontSide-default GPU optimisation and the terrain
+ * BackSide self-shadow, instead of forcing every touched mesh to DoubleSide. These
+ * are the source of truth — apply them anywhere a material is cloned/replaced.
+ */
+function intendedSide(mesh) {
+  return needsDoubleSide(mesh) ? THREE.DoubleSide : THREE.FrontSide;
+}
+function intendedShadowSide(mesh) {
+  return mesh && mesh.name === TERRAIN_SELFSHADOW_MESH ? THREE.BackSide : THREE.FrontSide;
+}
+
+/**
  * Meshes that must NOT cast shadows.
  * Roads/paths sit on the terrain — they receive shadows from buildings
  * but should never cast shadows themselves (avoids floating-road shadow artifacts).
@@ -313,14 +332,19 @@ function split011Meshes() {
     function makeMesh(geo, newName) {
       if (!geo) return;
       const mat = Array.isArray(src.userData.originalMaterial)
-        ? src.userData.originalMaterial.map(m => { const c = m.clone(); c.side = THREE.DoubleSide; c.shadowSide = THREE.FrontSide; return c; })
-        : (() => { const c = src.userData.originalMaterial.clone(); c.side = THREE.DoubleSide; c.shadowSide = THREE.FrontSide; return c; })();
+        ? src.userData.originalMaterial.map(m => m.clone())
+        : src.userData.originalMaterial.clone();
       const m = new THREE.Mesh(geo, mat);
       m.name = newName;
+      // Apply the new mesh's intended side now that it has a name (building
+      // footprints → FrontSide, same FrontSide-default optimisation as the rest).
+      const side = intendedSide(m);
+      const shadowSide = intendedShadowSide(m);
+      (Array.isArray(m.material) ? m.material : [m.material]).forEach((x) => { x.side = side; x.shadowSide = shadowSide; });
       m.castShadow = true;
       m.receiveShadow = true;
       m.frustumCulled = true;
-      m.userData.originalMaterial = Array.isArray(mat) ? mat.map(x => x.clone()) : mat.clone();
+      m.userData.originalMaterial = Array.isArray(m.material) ? m.material.map(x => x.clone()) : m.material.clone();
       src.parent.add(m);
       meshes[newName] = m;
     }
@@ -367,20 +391,24 @@ function disposeMeshMaterial(mesh) {
 }
 
 /**
- * Clone a material (or array of materials) preserving DoubleSide + FrontSide shadows.
+ * Clone a material (or array of materials), re-applying the mesh's intended
+ * render side (FrontSide default, DoubleSide for fabric/foliage) and shadow side
+ * (BackSide only for the self-shadowing terrain).
  */
-function cloneMaterial(material) {
+function cloneMaterial(material, mesh) {
+  const side = intendedSide(mesh);
+  const shadowSide = intendedShadowSide(mesh);
   if (Array.isArray(material)) {
     return material.map((m) => {
       const c = m.clone();
-      c.side = THREE.DoubleSide;
-      c.shadowSide = THREE.FrontSide;
+      c.side = side;
+      c.shadowSide = shadowSide;
       return c;
     });
   }
   const c = material.clone();
-  c.side = THREE.DoubleSide;
-  c.shadowSide = THREE.FrontSide;
+  c.side = side;
+  c.shadowSide = shadowSide;
   return c;
 }
 
@@ -399,13 +427,15 @@ export function tintMeshes(names, color, intensity) {
       ? mesh.userData.originalMaterial
       : [mesh.userData.originalMaterial];
     if (!origMats[0]) return;
+    const side = intendedSide(mesh);
+    const shadowSide = intendedShadowSide(mesh);
     const newMats = origMats.map((mat) => {
       const c = mat.clone();
       c.color.lerp(catColor, intensity);
       c.emissive.copy(catColor);
       c.emissiveIntensity = intensity * 0.2;
-      c.side = THREE.DoubleSide;
-      c.shadowSide = THREE.FrontSide;
+      c.side = side;
+      c.shadowSide = shadowSide;
       return c;
     });
     disposeMeshMaterial(mesh);
@@ -422,14 +452,16 @@ export function highlightMeshes(names, color) {
   names.forEach((name) => {
     const mesh = meshes[name];
     if (!mesh) return;
+    const side = intendedSide(mesh);
+    const shadowSide = intendedShadowSide(mesh);
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     const newMats = mats.map((mat) => {
       const c = mat.clone();
       c.color = new THREE.Color(color);
       c.emissive = new THREE.Color(color);
       c.emissiveIntensity = 0.2;
-      c.side = THREE.DoubleSide;
-      c.shadowSide = THREE.FrontSide;
+      c.side = side;
+      c.shadowSide = shadowSide;
       return c;
     });
     disposeMeshMaterial(mesh);
@@ -445,7 +477,7 @@ export function restoreAllMeshes() {
     if (mesh.userData.protectedMaterial) return;
     if (mesh.userData.originalMaterial) {
       disposeMeshMaterial(mesh);
-      mesh.material = cloneMaterial(mesh.userData.originalMaterial);
+      mesh.material = cloneMaterial(mesh.userData.originalMaterial, mesh);
     }
   });
 }
@@ -460,12 +492,14 @@ export function dimMeshesExcept(exceptNames, dimAmount = 0.18) {
   Object.entries(meshes).forEach(([name, mesh]) => {
     if (exceptSet.has(name)) return;
     if (mesh.userData.protectedMaterial) return;
+    const side = intendedSide(mesh);
+    const shadowSide = intendedShadowSide(mesh);
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     const newMats = mats.map((mat) => {
       const c = mat.clone();
       c.color.multiplyScalar(1 - dimAmount);
-      c.side = THREE.DoubleSide;
-      c.shadowSide = THREE.FrontSide;
+      c.side = side;
+      c.shadowSide = shadowSide;
       return c;
     });
     disposeMeshMaterial(mesh);

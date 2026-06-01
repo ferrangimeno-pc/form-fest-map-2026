@@ -17,19 +17,25 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 | `pool` | Pool | ☐ | ☐ | ☐ (3 slots) |
 | `envelop` | Envelop | ☐ | ☐ | ☐ (3 slots) |
 
-## Food (3)
+## Food (4)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
 | `cafe` | Cafe | ☐ | ☐ |
 | `foundry` | Foundry | ☐ | ☐ |
 | `bodega` | Bodega | ☐ | ☐ |
+| `grab-and-go` | Grab and Go | ☐ | ☐ |
 
-## Shop (1)
+> `grab-and-go` is a **dual-section** entry — it's the *same building* as the `bar-2` "Bar" (Bars section, the bar beside Soteria). The model object shows as "Bar" by default and as "Grab and Go" only while the Food filter is active, with its own photo/copy. Edit `grab-and-go` for the Food-side content; edit `bar-2` for the Bar-side content. Do not change either entry's `id`/`category`/positions.
+
+## Shop (2)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
 | `shop` | Shop | ☐ | ☐ |
+| `bodega-shop` | Bodega | ☐ | ☐ |
+
+> `bodega-shop` is a **dual-section** entry — it's the *same building* as the `bodega` "Bodega" (Food section). The model object shows as "Bodega" in Food (green) by default and highlights with the Shop color while the Shop filter is active (same name, its own photo/copy). Edit `bodega-shop` for the Shop-side content; edit `bodega` for the Food-side content. Do not change either entry's `id`/`category`/positions.
 
 ## Camping (3)
 
@@ -46,11 +52,15 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 | `restrooms-1` | Restrooms | ☐ | ☐ |
 | `restrooms-2` | Restrooms | ☐ | ☐ |
 
-## Guest Services (1)
+## Guest Services (3)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
 | `guest-services` | Guest Services | ☐ | ☐ |
+| `soteria` | Soteria Safe Space | ☐ | ☐ |
+| `medical` | Medical | ☐ | ☐ |
+
+> `soteria` and `medical` are new buildings added in the 01/06/2026 model update — confirm the display names and whether either needs different copy treatment than the generic `ABOUT` section.
 
 ## Bars (2) — names need client confirmation
 

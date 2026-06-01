@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { MODEL_MAP, getLocationForObject, getObjectsForLocation } from '../config/modelMap.js';
+import { MODEL_MAP, getLocationForObject, getObjectsForLocation, getContextMeshNames } from '../config/modelMap.js';
 import { CATEGORIES } from '../config/categories.js';
 import { getMesh, getModelRoot, tintMeshes, highlightMeshes } from '../scene/model.js';
 import { getActiveCategory } from './categories.js';
@@ -132,15 +132,16 @@ export function clearHoverState() {
  */
 export function applyIdleTints() {
   if (!_locationsData) return;
+  const activeCategory = getActiveCategory();
   const seen = new Set();
   _locationsData.locations.forEach((loc) => {
     if (seen.has(loc.id)) return;
     seen.add(loc.id);
     const cat = CATEGORIES.find((c) => c.id === loc.category);
     if (!cat) return;
-    const meshNames = Object.entries(MODEL_MAP)
-      .filter(([, id]) => id === loc.id)
-      .map(([name]) => name);
+    // Context-aware: a dual-section mesh tints with its primary owner unless the
+    // alternate's category is active, so the bar stays pink at idle (not green).
+    const meshNames = getContextMeshNames(loc.id, activeCategory);
     tintMeshes(meshNames, cat.highlightColor, 0.35);
   });
 }
@@ -175,9 +176,7 @@ function _applyHover(locationId) {
     seen.add(loc.id);
     const cat = CATEGORIES.find((c) => c.id === loc.category);
     if (!cat) return;
-    const meshNames = Object.entries(MODEL_MAP)
-      .filter(([, id]) => id === loc.id)
-      .map(([name]) => name);
+    const meshNames = getContextMeshNames(loc.id, activeCategory);
     if (activeCategory && loc.category === activeCategory) {
       // Active category siblings stay at 100%
       highlightMeshes(meshNames, cat.highlightColor);
@@ -186,10 +185,10 @@ function _applyHover(locationId) {
     }
   });
 
-  // Hovered building at 75% (overrides the 100% or 20% set above)
-  const hoveredMeshNames = Object.entries(MODEL_MAP)
-    .filter(([, id]) => id === locationId)
-    .map(([name]) => name);
+  // Hovered building at 75% (overrides the 100% or 20% set above).
+  // getObjectsForLocation returns the union, which is correct here because the
+  // hovered location is already resolved for context (bar-1 vs grab-and-go).
+  const hoveredMeshNames = getObjectsForLocation(locationId);
   tintMeshes(hoveredMeshNames, category.highlightColor, 0.75);
 
   // Pin handling: if this building already has a category pin, just highlight it
@@ -215,9 +214,7 @@ function _clearHover(locationId) {
     seen.add(loc.id);
     const cat = CATEGORIES.find((c) => c.id === loc.category);
     if (!cat) return;
-    const meshNames = Object.entries(MODEL_MAP)
-      .filter(([, id]) => id === loc.id)
-      .map(([name]) => name);
+    const meshNames = getContextMeshNames(loc.id, activeCategory);
     if (activeCategory && loc.category === activeCategory) {
       highlightMeshes(meshNames, cat.highlightColor);
     } else {
@@ -252,14 +249,17 @@ function _raycastLocation(x, y, clientX, clientY) {
   // Only test the model root (skips lights, helpers, fog, etc.)
   const root = getModelRoot();
   if (!root) return null;
+  // Active category resolves dual-section meshes (e.g. the bar → "Grab and Go"
+  // when Food is selected, "Bar" otherwise).
+  const activeCategory = getActiveCategory();
   const hits = raycaster.intersectObjects(root.children, true);
   for (const hit of hits) {
-    const locationId = getLocationForObject(hit.object.name);
+    const locationId = getLocationForObject(hit.object.name, activeCategory);
     if (locationId) return { locationId, mesh: hit.object };
   }
   // Fallback: screen-space proximity — snaps to the nearest location centroid
   // within PROXIMITY_PX pixels. No extra scene geometry, pure 2D math.
-  return _nearestByProximity(clientX, clientY);
+  return _nearestByProximity(clientX, clientY, activeCategory);
 }
 
 /**
@@ -267,7 +267,7 @@ function _raycastLocation(x, y, clientX, clientY) {
  * Returns the nearest location within PROXIMITY_PX, or null.
  * Only checks the first mesh listed per location to avoid double-counting.
  */
-function _nearestByProximity(clientX, clientY) {
+function _nearestByProximity(clientX, clientY, activeCategory = null) {
   const rect = _container.getBoundingClientRect();
   const w = rect.width;
   const h = rect.height;
@@ -277,8 +277,10 @@ function _nearestByProximity(clientX, clientY) {
   let best = null;
   let bestDist2 = threshold2;
 
-  for (const [meshName, locationId] of Object.entries(MODEL_MAP)) {
-    if (seen.has(locationId)) continue; // one centroid per location
+  for (const meshName of Object.keys(MODEL_MAP)) {
+    // Resolve for context so a dual-section mesh snaps to its active identity.
+    const locationId = getLocationForObject(meshName, activeCategory);
+    if (!locationId || seen.has(locationId)) continue; // one centroid per location
     seen.add(locationId);
 
     const mesh = getMesh(meshName);
