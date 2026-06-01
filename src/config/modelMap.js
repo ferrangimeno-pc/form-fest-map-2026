@@ -38,14 +38,17 @@ export const MODEL_MAP = {
   'Cube002_1':        'cafe',
   'Cube002_2':        'cafe',
   // Three GLTF nodes (Cube.003/.004/.006) share mesh "Cube.005" → 6 runtime prims.
-  // NOTE: in the 23/04/2026 model, "Cube.003"/".004" are ALSO used as mesh names
-  // by the BarLocation.* nodes, but their node reservations pre-claim those slots.
-  'Cube005':          'cafe',
+  // NOTE (01/06/2026 model): a NEW node literally named "Cube.005" (mesh Cube.015)
+  // now reserves the "Cube005" base name in GLTFLoader's phase-1 nodeName pass, so
+  // the cafe prims shift up by one and start at `Cube005_1` (was `Cube005`). The
+  // bare "Cube005" runtime name no longer exists. The new node's own prims surface
+  // as `Cube015`/`Cube015_1` (see below). Verified via scripts/runtime-names.mjs.
   'Cube005_1':        'cafe',
   'Cube005_2':        'cafe',
   'Cube005_3':        'cafe',
   'Cube005_4':        'cafe',
   'Cube005_5':        'cafe',
+  'Cube005_6':        'cafe',
   // OSM background footprint adjacent to the cafe cluster.
   // Naming quirk: GLTF node is "map.osm_buildings.004" but its mesh-def is
   // named "map.osm_buildings.009" — Three.js names the multi-prim children
@@ -98,6 +101,15 @@ export const MODEL_MAP = {
   'maposm_buildings011_1_gs': 'guest-services',
   'maposm_buildings011_2_gs': 'guest-services',
   'maposm_buildings011_3_gs': 'guest-services',
+  // New in 01/06/2026 model — two standalone guest-services structures north of
+  // the GS cluster (client-confirmed).
+  // Soteria Safe Space — node "Large Tent.001" (mesh Cone.002, single-prim) →
+  // runtime "Large_Tent001" (space + dot sanitized to underscores).
+  'Large_Tent001':    'soteria',
+  // Medical — node "Cube.005" (mesh Cube.015, 2 prims) → runtime Cube015/_1.
+  // NOTE: this node's name also bumps the cafe Cube005_* prims up by one (see FOOD).
+  'Cube015':          'medical',
+  'Cube015_1':        'medical',
 
   // ── BARS — two explicit BarLocation nodes in the 23/04/2026 model ────────
   // bar-1: BarLocation.000 (mesh Cube.003, 2 prims)
@@ -108,12 +120,72 @@ export const MODEL_MAP = {
   'Cube004_2':        'bar-2',
 };
 
+/**
+ * Dual-section meshes — a single model object that belongs to TWO locations in
+ * two different categories. The mesh keeps its primary mapping (MODEL_MAP) for
+ * default color, hover, and idle identity; the alternate below only takes over
+ * while ITS category is the active one (pin label, highlight color, and popup all
+ * switch to the alternate).
+ *
+ *  - bar-2 (BarLocation.001 / Cube004_1+_2, beside the Soteria tent): default
+ *    "Bar" (pink, BARS); becomes "Grab and Go" (green) while FOOD is selected.
+ *  - bodega (Large Tent / Large_Tent): default "Bodega" (green, FOOD); highlights
+ *    with the SHOP color while SHOP is selected (same name "Bodega").
+ *
+ *   mesh -> { id: alternate locationId, category: category that activates it }
+ */
+export const DUAL_SECTION_MESHES = {
+  'Cube004_1': { id: 'grab-and-go', category: 'food' },
+  'Cube004_2': { id: 'grab-and-go', category: 'food' },
+  'Large_Tent': { id: 'bodega-shop', category: 'shop' },
+};
+
+/**
+ * All meshes mapped to a location, unioning the primary map with any dual-section
+ * meshes whose alternate is this location. Context-free — returns every mesh the
+ * location can ever own. Use for camera-fit and for highlighting the locations of
+ * the currently-active category (where only one of a mesh's two owners is ever in
+ * the active set).
+ */
 export function getObjectsForLocation(locationId) {
-  return Object.entries(MODEL_MAP)
+  const names = Object.entries(MODEL_MAP)
     .filter(([, id]) => id === locationId)
     .map(([objName]) => objName);
+  for (const [name, dual] of Object.entries(DUAL_SECTION_MESHES)) {
+    if (dual.id === locationId) names.push(name);
+  }
+  return names;
 }
 
-export function getLocationForObject(objectName) {
+/**
+ * Resolve a mesh to its location for the CURRENT context. A dual-section mesh
+ * resolves to its alternate location only while that alternate's category is the
+ * active one; otherwise it resolves to its primary owner. Drives hover/click.
+ */
+export function getLocationForObject(objectName, activeCategoryId = null) {
+  const dual = DUAL_SECTION_MESHES[objectName];
+  if (dual && activeCategoryId === dual.category) return dual.id;
   return MODEL_MAP[objectName] || null;
+}
+
+/**
+ * Meshes a location "owns" in the CURRENT context — used by the idle/hover tint
+ * loops that iterate EVERY location, where a dual mesh's two owners would
+ * otherwise both try to tint it. A dual mesh belongs to its alternate only while
+ * that alternate's category is active; otherwise it stays with its primary owner.
+ */
+export function getContextMeshNames(locationId, activeCategoryId = null) {
+  const names = [];
+  // Primary meshes — skip any currently overridden by an active dual elsewhere.
+  for (const [name, id] of Object.entries(MODEL_MAP)) {
+    if (id !== locationId) continue;
+    const dual = DUAL_SECTION_MESHES[name];
+    if (dual && activeCategoryId === dual.category && dual.id !== locationId) continue;
+    names.push(name);
+  }
+  // Dual meshes this location owns while its category is active.
+  for (const [name, dual] of Object.entries(DUAL_SECTION_MESHES)) {
+    if (dual.id === locationId && activeCategoryId === dual.category) names.push(name);
+  }
+  return names;
 }

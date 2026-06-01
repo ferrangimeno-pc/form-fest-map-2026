@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const GLB = resolve(__dirname, '../public/assets/model/formFestMap.glb');
+const GLB = process.argv[2] ? resolve(process.argv[2]) : resolve(__dirname, '../public/assets/model/formFestMap.glb');
 
 const io = new NodeIO()
   .registerExtensions(KHRONOS_EXTENSIONS)
