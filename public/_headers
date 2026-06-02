@@ -1,0 +1,21 @@
+# Cloudflare Pages headers
+# Lives in /public so Vite copies it to the dist root on build.
+# Docs: https://developers.cloudflare.com/pages/configuration/headers/
+
+# This map is embedded into the event's Webflow site via an <iframe>.
+# We intentionally do NOT set X-Frame-Options or a CSP frame-ancestors rule here,
+# so the page can be embedded from any domain. This guarantees the embed works
+# regardless of which Webflow domain the integration team uses (staging *.webflow.io,
+# the live custom domain, etc.) with no further config on our side.
+#
+# OPTIONAL — to restrict embedding to specific domains later, uncomment the line
+# below and replace the domains with the real published Webflow URLs:
+#   Content-Security-Policy: frame-ancestors 'self' https://*.webflow.io https://your-event-domain.com
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Long-cache the immutable, fingerprinted build assets (Vite hashes these filenames).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
