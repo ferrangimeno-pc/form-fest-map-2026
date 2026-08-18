@@ -1,4 +1,4 @@
-import { Clock, Box3, Vector3 } from 'three';
+import { Clock, Box3, Vector3, Raycaster } from 'three';
 import { initEngine } from './scene/engine.js';
 import { loadModel, getMeshNames, getMesh, highlightMeshes, restoreAllMeshes, dimMeshesExcept } from './scene/model.js';
 import { initWater, updateWater, updateWaterLighting } from './scene/water.js';
@@ -115,6 +115,13 @@ async function init() {
   // 6b. Apply default 25% category-color tint to all clickable buildings
   applyIdleTints();
 
+  // 6c. Snap every pin to the surface under it. Pin stems anchor exactly at
+  // pinPosition (renderPins), so a hand-authored y that misses the mesh top
+  // leaves the flag visibly floating — a recurring error whenever the model
+  // or a pin moves. Raycast straight down at each pin's x/z against the
+  // location's own meshes (terrain for pin-only locations) and overwrite y.
+  snapPinHeights();
+
   // Touch devices: pre-render all pins so users see tap targets.
   showAllPinsForTouch(scene);
 
@@ -181,6 +188,59 @@ async function init() {
   // Pin positions are updated every frame in the animation loop (after renderer.render()),
   // which keeps camera matrices fully in sync. No separate change listener needed.
 }
+
+/** Terrain meshes used as the raycast fallback for pin-only locations. */
+const TERRAIN_MESH_NAMES = [
+  'Terrain_Step_Terrace_CamCrop',
+  'Terrain_Terraced_CamCrop001',
+  'Terrain_Terraced_CamCrop002',
+];
+
+/**
+ * Overwrite each location's pinPosition.y with the actual surface height at
+ * its x/z — location meshes first, terrain as fallback (pin-only locations,
+ * or pins authored beside their building). Runs once after model load.
+ */
+function snapPinHeights() {
+  const raycaster = new Raycaster();
+  const down = new Vector3(0, -1, 0);
+  const terrain = TERRAIN_MESH_NAMES.map((n) => getMesh(n)).filter(Boolean);
+
+  locationsData.locations.forEach((loc) => {
+    const own = getObjectsForLocation(loc.id).map((n) => getMesh(n)).filter(Boolean);
+    raycaster.set(new Vector3(loc.pinPosition.x, 50, loc.pinPosition.z), down);
+    let hits = own.length > 0 ? raycaster.intersectObjects(own, false) : [];
+    if (hits.length === 0) hits = raycaster.intersectObjects(terrain, false);
+    if (hits.length > 0) {
+      loc.pinPosition.y = hits[0].point.y + 0.02;
+    } else if (import.meta.env.DEV) {
+      console.warn(`[Pins] snapPinHeights: no surface under "${loc.id}" — keeping authored y`);
+    }
+  });
+}
+
+/**
+ * Hand-tuned desktop camera poses that replace the pin-bbox auto-fit for
+ * categories whose pin cloud auto-fits badly. Restrooms spans the whole site
+ * diagonally — the auto-fit frames it as a tall vertical strip; this preset
+ * shows the full map laid out horizontally instead (client-requested).
+ *
+ * The restrooms pose was solved photogrammetrically from the client's
+ * reference screenshot (pin-stem anchors → camera fit, rms 2.5 px): a low
+ * south view looking north, radius ~11 so distance fog stays mild. Note this
+ * azimuth differs from the default 45° NE view — that is intentional.
+ */
+const CATEGORY_VIEW_PRESETS = {
+  restrooms: {
+    position: { x: -7.27, y: 7.79, z: 6.86 },
+    target:   { x: -4.21, y: 1.8, z: -1.83 },
+  },
+  // Solved from the client's Camp reference screenshot (rms 1.6 px).
+  camping: {
+    position: { x: -10.94, y: 7.37, z: 4.79 },
+    target:   { x: -6.02, y: 1.8, z: -4.34 },
+  },
+};
 
 /**
  * Handle category selection: highlight objects, show pins, fly camera.
@@ -274,6 +334,13 @@ function _fitCameraToLocations(locations, camera) {
     return;
   }
 
+  // Desktop: hand-tuned preset wins over the auto-fit when one exists.
+  const preset = CATEGORY_VIEW_PRESETS[locations[0].category];
+  if (preset) {
+    flyTo(camera, preset);
+    return;
+  }
+
   if (locations.length === 1) {
     // Desktop single location: fly to its preset camera position
     flyTo(camera, {
@@ -307,7 +374,9 @@ function _fitCameraToLocations(locations, camera) {
   // Camera distance: pull back proportionally so all pins fit in the available viewport.
   const span            = Math.max(spanX, spanZ, 1.0);
   const barCompensation = 1 / (1 - barFraction);
-  const distance        = Math.min(Math.max(span * 1.7 * barCompensation + 2, 4), 14);
+  // Cap raised 14 → 20 (18/08/2026): the Restrooms span now reaches from the
+  // core out to car camping and needs ~19 to fit all four pins.
+  const distance        = Math.min(Math.max(span * 1.7 * barCompensation + 2, 4), 20);
 
   // --- Screen-space horizontal centering ---
   // For our 45° NE camera, screen-right direction in world XZ = (-1/√2, 0, +1/√2).

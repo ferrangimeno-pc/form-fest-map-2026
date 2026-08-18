@@ -48,7 +48,7 @@ Send copy/photos as a Google Doc, Notion page, Figma frame, or zip — whatever'
 - **Three.js r170** — WebGL renderer, GLTF/GLB loading, OrbitControls, raycasting
 - **Vite 6** — dev server + production build
 - **Vanilla JS (ES modules)** — no framework dependency, maximum portability
-- **GLB + Draco compression** — 3D model at 2.5 MB
+- **GLB + Draco compression** — 3D model at 1.75 MB
 - **HDRI lighting** — day/live/night presets with smooth transitions
 - **EffectComposer** post-processing — bloom (quarter-res), SMAA (desktop), film grain, color grading
 
@@ -140,15 +140,18 @@ The following are currently placeholder and need to be filled before launch:
 
 Defined in `src/config/categories.js`. Current categories and their highlight colors:
 
+Array order = button order (client-specified 18/08/2026).
+
 | ID | Label | Color | Locations |
 |---|---|---|---|
-| `stages` | Stages | `#FF6B35` orange | 5 |
+| `stages` | Stages | `#FF6B35` orange | 4 |
 | `food` | Food | `#8BC34A` green | 3 |
-| `shop` | Shop | `#4A90A4` teal | 1 |
-| `camping` | Camping Zones | `#F5C842` gold | 3 |
-| `restrooms` | Restrooms | `#4A90D9` blue | 2 |
-| `guest-services` | Guest Services | `#E53935` red | 1 |
 | `bars` | Bars | `#E91E90` pink | 2 |
+| `camping` | Camp | `#F5C842` gold | 3 |
+| `shop` | Shop | `#4A90A4` teal | 1 |
+| `guest-services` | Guest Services | `#E53935` red | 3 |
+| `hangouts` | Hangouts | `#9C27B0` purple | 3 |
+| `restrooms` | Restrooms | `#4A90D9` blue | 4 |
 
 ---
 
@@ -156,7 +159,14 @@ Defined in `src/config/categories.js`. Current categories and their highlight co
 
 When an updated GLB is delivered:
 
-1. Drop the new `.glb` into `public/assets/model/` (same filename: `formFestMap.glb`)
+1. Clean and convert the raw export (a raw Blender export usually contains
+   hidden working objects and undecimated meshes — see the removal/simplify
+   lists at the top of `scripts/cleanup-model.mjs` and refresh them for the
+   new export using `scripts/blender-hidden-objects.py`):
+   ```bash
+   node scripts/cleanup-model.mjs "<export>.gltf" "<tmp-out-dir>"
+   node scripts/optimize-model.mjs "<tmp-out-dir>/<export>.gltf"
+   ```
 2. Run the validator:
    ```bash
    npm run validate-model
@@ -200,7 +210,7 @@ src/
 
 public/
   assets/
-    model/formFestMap.glb  — 3D model (2.5 MB, Draco compressed)
+    model/formFestMap.glb  — 3D model (1.75 MB, Draco compressed)
     hdri/desert_2k.hdr     — HDRI environment map (1.4 MB)
     photos/                — location photos (create this folder when adding the first JPG)
     icons/                 — mouse SVG icons for desktop controls legend
@@ -209,6 +219,8 @@ public/
 scripts/
   validate-model.mjs       — GLB mesh validator (npm run validate-model)
   optimize-model.mjs       — GLTF → GLB conversion utility (npm run optimize-model)
+  cleanup-model.mjs        — strips Blender working-file leftovers + decimates known-heavy meshes (run BEFORE optimize-model on a raw export)
+  blender-hidden-objects.py — headless Blender dump of hidden objects (ground truth for cleanup-model's removal list)
   inspect-all.mjs          — dev diagnostic: full mesh/material dump
   inspect-meshes.mjs       — dev diagnostic: mesh name listing
 ```

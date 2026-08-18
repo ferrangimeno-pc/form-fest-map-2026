@@ -7,37 +7,42 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 - **Programming** — `time` + `artist` list. Stages only.
 - **Name** — only flagged where the placeholder is generic (e.g. "Bar"). Confirm or rename.
 
-## Stages (5)
+> Updated 18/08/2026 for the new model + category revision: Hangouts tab added
+> (purple), tabs reordered, "Camping Zones" → "Camp". Bodega, Grab and Go and
+> the second Bar were **removed**. Pool moved from Stages to Hangouts.
+
+## Stages (4)
 
 | ID | Name | Photo | Copy | Programming |
 |---|---|:-:|:-:|:-:|
-| `apse` | Apse | ☐ | ☐ | ☐ (5 slots) |
+| `apse` | Apse: Spotify Fresh Finds Stage | ☐ | ☐ | ☐ (5 slots) |
 | `vaults` | Vaults | ☐ | ☐ | ☐ (5 slots) |
 | `amphitheater` | Amphitheater | ☐ | ☐ | ☐ (5 slots) |
-| `pool` | Pool | ☐ | ☐ | ☐ (3 slots) |
 | `envelop` | Envelop | ☐ | ☐ | ☐ (3 slots) |
 
-## Food (4)
+> `envelop` moved NE of the Amphitheater (18/08/2026). It is pin-only — the
+> CAD marks it as a 41'-diameter Durango tent with no structure in the 3D model.
+
+## Food (3)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
 | `cafe` | Cafe | ☐ | ☐ |
 | `foundry` | Foundry | ☐ | ☐ |
-| `bodega` | Bodega | ☐ | ☐ |
-| `grab-and-go` | Grab and Go | ☐ | ☐ |
+| `oasis` | Oasis | ☐ | ☐ |
 
-> `grab-and-go` is a **dual-section** entry — it's the *same building* as the `bar-2` "Bar" (Bars section, the bar beside Soteria). The model object shows as "Bar" by default and as "Grab and Go" only while the Food filter is active, with its own photo/copy. Edit `grab-and-go` for the Food-side content; edit `bar-2` for the Bar-side content. Do not change either entry's `id`/`category`/positions.
+> `oasis` is new (18/08/2026) — the two Durango tents west of the core.
 
-## Shop (2)
+## Bars (2)
 
-| ID | Name | Photo | Copy |
-|---|---|:-:|:-:|
-| `shop` | Shop | ☐ | ☐ |
-| `bodega-shop` | Bodega | ☐ | ☐ |
+| ID | Name | Confirmed name | Photo | Copy |
+|---|---|---|:-:|:-:|
+| `bar-1` | Bar (placeholder) | ☐ | ☐ | ☐ |
+| `the-shop-bar` | The Shop Bar and Craft Beer | — | ☐ | ☐ |
 
-> `bodega-shop` is a **dual-section** entry — it's the *same building* as the `bodega` "Bodega" (Food section). The model object shows as "Bodega" in Food (green) by default and highlights with the Shop color while the Shop filter is active (same name, its own photo/copy). Edit `bodega-shop` for the Shop-side content; edit `bodega` for the Food-side content. Do not change either entry's `id`/`category`/positions.
+> `bar-1` still needs its real name confirmed by the client.
 
-## Camping (3)
+## Camp (3)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
@@ -45,12 +50,14 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 | `glamping-rvs` | Glamping RVs | ☐ | ☐ |
 | `car-camping` | Car Camping | ☐ | ☐ |
 
-## Restrooms (2)
+## Shop (1)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
-| `restrooms-1` | Restrooms | ☐ | ☐ |
-| `restrooms-2` | Restrooms | ☐ | ☐ |
+| `shop` | Lab | ☐ | ☐ |
+
+> Renamed from "Shop" to "Lab" (18/08/2026); the tab keeps the "Shop" title.
+> The `id` stays `shop` — do not change it.
 
 ## Guest Services (3)
 
@@ -60,22 +67,36 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 | `soteria` | Soteria Safe Space | ☐ | ☐ |
 | `medical` | Medical | ☐ | ☐ |
 
-> `soteria` and `medical` are new buildings added in the 01/06/2026 model update — confirm the display names and whether either needs different copy treatment than the generic `ABOUT` section.
+## Hangouts (5)
 
-## Bars (2) — names need client confirmation
+| ID | Name | Photo | Copy |
+|---|---|:-:|:-:|
+| `pool` | Pool | ☐ | ☐ |
+| `spotify-lounge` | Spotify Lounge | ☐ | ☐ |
+| `nucleus` | Nucleus | ☐ | ☐ |
+| `slab` | Slab | ☐ | ☐ |
+| `rooftop` | Rooftop | ☐ | ☐ |
 
-| ID | Name (placeholder) | Confirmed name | Photo | Copy |
-|---|---|---|:-:|:-:|
-| `bar-1` | Bar | ☐ | ☐ | ☐ |
-| `bar-2` | Bar | ☐ | ☐ | ☐ |
+> `slab` is the stepped shade structure SW of the amphitheater (the mesh that
+> used to be Envelop). `rooftop` is pin-only on the flat roof east of the
+> amphitheater bowl (positions confirmed 18/08/2026).
 
-> Client to also confirm whether additional bars exist beyond these two.
+## Restrooms (4)
+
+| ID | Name | Photo | Copy |
+|---|---|:-:|:-:|
+| `restrooms-1` | Restrooms | ☐ | ☐ |
+| `restrooms-2` | Restrooms | ☐ | ☐ |
+| `restrooms-3` | Restrooms | ☐ | ☐ |
+| `restrooms-4` | Restrooms | ☐ | ☐ |
+
+> `restrooms-3` (near the old Envelop hill) and `restrooms-4` (car camping)
+> are new in the 18/08/2026 model.
 
 ---
 
 ## Site-wide content questions for the client
 
+- [ ] Confirm `bar-1` real name
 - [ ] Final festival dates (currently not surfaced anywhere visible)
-- [ ] Confirm category labels — happy with `Stages / Food / Shop / Camping Zones / Restrooms / Guest Services / Bars`?
-- [ ] Confirm bar count (2 currently mapped)
 - [ ] Any sponsor logos / partner logos to surface in the modal or elsewhere?

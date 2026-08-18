@@ -173,6 +173,14 @@ export function flyTo(camera, destination, duration = 1.2) {
       destination.target.z
     );
 
+    // Wide category fits (e.g. Restrooms spanning core → car camping) need a
+    // camera radius beyond the interactive maxDistance; controls.update()
+    // inside the tick would otherwise clamp the camera mid-flight and cut
+    // pins out of view. Expand the limit to the destination radius (never
+    // below the base limit) — zooming back in stays unrestricted.
+    const baseMax = isMobile() ? 26 : LIMITS.maxDistance;
+    controls.maxDistance = Math.max(baseMax, endPos.distanceTo(endTarget) * 1.02);
+
     let elapsed = 0;
     const anim = { cancel: false };
     flyToAnimation = anim;

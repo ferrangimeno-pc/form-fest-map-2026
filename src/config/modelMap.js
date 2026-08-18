@@ -30,9 +30,10 @@ export const MODEL_MAP = {
   'Cube001_4':        'pool',          // water shader target (water.js)
   'Cylinder002_1':    'vaults',
   'Cylinder002_2':    'vaults',
-  // Envelop — shade/gazebo structure in front of the amphitheater (node
-  // "Hill Shades", single-prim, mesh Cube.018).
-  'Hill_Shades':      'envelop',
+  // Envelop (18/08/2026): PIN-ONLY, placed just west of the cafe complex
+  // (client-directed). No mesh in the model (the "Old Envelop Tent" object is
+  // hidden in Blender and stripped by scripts/cleanup-model.mjs). The former
+  // envelop mesh "Hill_Shades" is now the Slab hangout.
 
   // ── FOOD ─────────────────────────────────────────────────────────────────
   'Cube002_1':        'cafe',
@@ -56,23 +57,51 @@ export const MODEL_MAP = {
   // though the visual footprint sits at the cafe (verified at runtime:
   // bbox center -5.71, 0.93 vs cafe pin -6.07, 0.88). DO NOT change to
   // `maposm_buildings004_N` — those keys don't exist at runtime.
+  // 18/08/2026: mesh map.osm_buildings.009 now has 2 prims (was 3) →
+  // maposm_buildings009_3 no longer exists.
   'maposm_buildings009_1': 'cafe',
   'maposm_buildings009_2': 'cafe',
-  'maposm_buildings009_3': 'cafe',
+  // The cafe's BIG top structure — new node "map.osm_buildings.016" (mesh
+  // map.osm_buildings.018, 3 prims) stacked on the 009 footprint at
+  // scaled (-5.71, 0.93). Without these the main cafe building doesn't
+  // highlight.
+  'maposm_buildings018':   'cafe',
+  'maposm_buildings018_1': 'cafe',
+  'maposm_buildings018_2': 'cafe',
   'Roundcube002_1':   'foundry',
   'Roundcube002_2':   'foundry',
   'Roundcube003_1':   'foundry',
   'Roundcube003_2':   'foundry',
   'Roundcube004':     'foundry',
-  // Bodega — node "Large Tent" uses mesh "Cone.001" (single-prim).
-  // Three.js sanitizeNodeName() converts the space to underscore.
-  'Large_Tent':       'bodega',
+  // Bodega removed entirely in the 18/08/2026 update (node "Large Tent" is
+  // gone from the model, and the bodega/bodega-shop entries are deleted).
+  // Oasis — the NORTH Durango tent NW of the Apse (CAD: "43'D DURANGO
+  // OASIS"). Its southern twin is The Shop Bar (see BARS). Single-prim node.
+  'Durango_Tent001':  'oasis',
 
-  // ── SHOP — same mesh as the GitHub release: map.osm_buildings.008 (3 prims)
-  // at scaled (-4.03, 1.40, -0.55).
+  // ── SHOP — same building as before (map.osm_buildings.008, 3 prims) at
+  // scaled (-4.03, 1.40, -0.55); the location is now NAMED "Lab" (18/08/2026)
+  // while the category/tab stays "Shop". The id stays 'shop' for stability.
   'maposm_buildings008_1': 'shop',
   'maposm_buildings008_2': 'shop',
   'maposm_buildings008_3': 'shop',
+
+  // ── HANGOUTS (new category 18/08/2026) ───────────────────────────────────
+  // Pool moved here from STAGES (see above — meshes unchanged).
+  // Spotify Lounge — single-prim node "Spotify Lounge" (mesh Cone.004),
+  // NE of bar-1 at raw (-88, -48).
+  'Spotify_Lounge':   'spotify-lounge',
+  // Slab — the stepped shade structure SW of the amphitheater (node
+  // "Hill Shades", mesh Cube.018). This was envelop's mesh until 18/08/2026;
+  // client confirmed it is the Slab hangout.
+  'Hill_Shades':      'slab',
+  // Rooftop — the flat-roof complex east of the amphitheater bowl (node
+  // "map.osm_buildings.015", mesh map.osm_buildings.017, 3 prims).
+  'maposm_buildings017':   'rooftop',
+  'maposm_buildings017_1': 'rooftop',
+  'maposm_buildings017_2': 'rooftop',
+  // nucleus stays pin-only (it sits on the CAD's "ARCO NUCLEUS" building,
+  // which is bar-1's mesh).
 
   // ── GLAMPING — single-prim node "Placement_CampingTents" (mesh "Vert")
   // (renamed from the previous "camping" location).
@@ -80,10 +109,11 @@ export const MODEL_MAP = {
   'Placement_CampingTents': 'glamping',
 
   // ── GLAMPING RVs — van cluster from node "Placement_ParkingLot.001" ──────
-  // (mesh "Cube.017", 2 prims) at scaled (-6.22, 1.30, -5.48). The old 11-vehicle
-  // cluster is now hidden via HIDDEN_MESHES (residual from previous export).
-  'Cube017':          'glamping-rvs',
-  'Cube017_1':        'glamping-rvs',
+  // 18/08/2026: the node now uses mesh "Cube.034" (2 prims, real RV models)
+  // instead of "Cube.017". Same position. The old 11-vehicle cluster is still
+  // hidden via HIDDEN_MESHES (residual from previous export).
+  'Cube034':          'glamping-rvs',
+  'Cube034_1':        'glamping-rvs',
 
   // ── CAR CAMPING — parking-lot surface at the northern edge of the site
   // (single-prim node "Placement_ParkingLot", scaled center ~(-8.81, 1.32, -7.83)).
@@ -94,6 +124,11 @@ export const MODEL_MAP = {
   'BathroomGA003':    'restrooms-1',
   'BathroomGA012':    'restrooms-2',
   'BathroomGA001':    'restrooms-2',
+  // New in 18/08/2026 model — two additional restroom structures:
+  // restrooms-3 near the old envelop hill (raw -80, 37), restrooms-4 out in
+  // car camping (raw -337, -332). Single-prim nodes.
+  'BathroomGA004':    'restrooms-3',
+  'BathroomGA005':    'restrooms-4',
 
   // ── GUEST SERVICES — GS sub-cluster of map.osm_buildings.011 ─────────────
   // The 011 GLTF node spans 3 separate building groups. model.js splits it at
@@ -101,23 +136,26 @@ export const MODEL_MAP = {
   'maposm_buildings011_1_gs': 'guest-services',
   'maposm_buildings011_2_gs': 'guest-services',
   'maposm_buildings011_3_gs': 'guest-services',
-  // New in 01/06/2026 model — two standalone guest-services structures north of
-  // the GS cluster (client-confirmed).
-  // Soteria Safe Space — node "Large Tent.001" (mesh Cone.002, single-prim) →
-  // runtime "Large_Tent001" (space + dot sanitized to underscores).
-  'Large_Tent001':    'soteria',
+  // Soteria Safe Space — client-corrected 18/08/2026: it is the "Cube.009"
+  // building (node+mesh "Cube.009", 2 prims → Cube009_1/_2; the bare Cube009
+  // name is consumed by the phase-1 node reservation). The former host mesh
+  // (Large Tent.001 = old Bodega tent) is stripped from the GLB entirely.
+  'Cube009_1':        'soteria',
+  'Cube009_2':        'soteria',
   // Medical — node "Cube.005" (mesh Cube.015, 2 prims) → runtime Cube015/_1.
   // NOTE: this node's name also bumps the cafe Cube005_* prims up by one (see FOOD).
   'Cube015':          'medical',
   'Cube015_1':        'medical',
 
-  // ── BARS — two explicit BarLocation nodes in the 23/04/2026 model ────────
-  // bar-1: BarLocation.000 (mesh Cube.003, 2 prims)
+  // ── BARS ─────────────────────────────────────────────────────────────────
+  // bar-1: BarLocation.000 (mesh Cube.003, 2 prims). Sits on the CAD's
+  // "ARCO NUCLEUS" building complex.
   'Cube003_1':        'bar-1',
   'Cube003_2':        'bar-1',
-  // bar-2: BarLocation.001 (mesh Cube.004, 2 prims)
-  'Cube004_1':        'bar-2',
-  'Cube004_2':        'bar-2',
+  // bar-2 (BarLocation.001) removed entirely in the 18/08/2026 update.
+  // The Shop Bar and Craft Beer — the SOUTH Durango tent NW of the Apse
+  // (CAD: "43'D DURANGO THE SHOP"). Twin of the Oasis tent.
+  'Durango_Tent002':  'the-shop-bar',
 };
 
 /**
@@ -127,18 +165,13 @@ export const MODEL_MAP = {
  * while ITS category is the active one (pin label, highlight color, and popup all
  * switch to the alternate).
  *
- *  - bar-2 (BarLocation.001 / Cube004_1+_2, beside the Soteria tent): default
- *    "Bar" (pink, BARS); becomes "Grab and Go" (green) while FOOD is selected.
- *  - bodega (Large Tent / Large_Tent): default "Bodega" (green, FOOD); highlights
- *    with the SHOP color while SHOP is selected (same name "Bodega").
- *
  *   mesh -> { id: alternate locationId, category: category that activates it }
+ *
+ * 18/08/2026: currently EMPTY — the two former dual-section locations
+ * (grab-and-go on bar-2, bodega-shop on bodega) were removed along with
+ * their host meshes. The mechanism stays for future use.
  */
-export const DUAL_SECTION_MESHES = {
-  'Cube004_1': { id: 'grab-and-go', category: 'food' },
-  'Cube004_2': { id: 'grab-and-go', category: 'food' },
-  'Large_Tent': { id: 'bodega-shop', category: 'shop' },
-};
+export const DUAL_SECTION_MESHES = {};
 
 /**
  * All meshes mapped to a location, unioning the primary map with any dual-section

@@ -22,8 +22,10 @@
   "devDependencies": {
     "@gltf-transform/core": "^4.3.0",
     "@gltf-transform/extensions": "^4.3.0",
+    "@gltf-transform/functions": "^4.4.2",
     "draco3dgltf": "^1.5.7",
     "gltf-pipeline": "^4.1.0",
+    "meshoptimizer": "^1.2.0",
     "vite": "^6.0.0"
   }
 }
