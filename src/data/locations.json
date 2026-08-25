@@ -237,19 +237,19 @@
       "name": "Nucleus",
       "category": "hangouts",
       "pinPosition": {
-        "x": -3.348,
+        "x": -3.912,
         "y": 1.7,
-        "z": -1.188
+        "z": -0.913
       },
       "cameraTarget": {
-        "x": -3.348,
+        "x": -3.912,
         "y": 0,
-        "z": -1.188
+        "z": -0.913
       },
       "cameraPosition": {
-        "x": -1.998,
+        "x": -2.562,
         "y": 2.2,
-        "z": 0.212
+        "z": 0.487
       },
       "photo": "",
       "sections": [
@@ -284,6 +284,10 @@
         {
           "title": "ABOUT",
           "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "title": "FEATURING",
+          "body": "Bad Jimmy's"
         }
       ],
       "programming": []
@@ -413,6 +417,10 @@
         {
           "title": "ABOUT",
           "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "title": "FEATURING",
+          "body": "Otra Pizzeria"
         }
       ],
       "programming": []
@@ -422,19 +430,19 @@
       "name": "Oasis",
       "category": "food",
       "pinPosition": {
-        "x": -5.45,
+        "x": -5.49,
         "y": 1.6,
-        "z": -1.13
+        "z": -1.07
       },
       "cameraTarget": {
-        "x": -5.45,
+        "x": -5.49,
         "y": 0,
-        "z": -1.13
+        "z": -1.07
       },
       "cameraPosition": {
-        "x": -4.1,
+        "x": -4.14,
         "y": 2.2,
-        "z": 0.27
+        "z": 0.33
       },
       "photo": "",
       "sections": [
@@ -702,19 +710,19 @@
       "name": "Soteria Safe Space",
       "category": "guest-services",
       "pinPosition": {
-        "x": -4.91,
+        "x": -4.504,
         "y": 1.5,
-        "z": -3.05
+        "z": -2.075
       },
       "cameraTarget": {
-        "x": -4.91,
+        "x": -4.504,
         "y": 0,
-        "z": -3.05
+        "z": -2.075
       },
       "cameraPosition": {
-        "x": -3.56,
+        "x": -3.154,
         "y": 2.2,
-        "z": -1.65
+        "z": -0.675
       },
       "photo": "",
       "sections": [
@@ -786,19 +794,19 @@
       "name": "The Shop Bar and Craft Beer",
       "category": "bars",
       "pinPosition": {
-        "x": -5.43,
+        "x": -5.491,
         "y": 1.6,
-        "z": -0.76
+        "z": -0.521
       },
       "cameraTarget": {
-        "x": -5.43,
+        "x": -5.491,
         "y": 0,
-        "z": -0.76
+        "z": -0.521
       },
       "cameraPosition": {
-        "x": -4.08,
+        "x": -4.141,
         "y": 2.2,
-        "z": 0.64
+        "z": 0.879
       },
       "photo": "",
       "sections": [

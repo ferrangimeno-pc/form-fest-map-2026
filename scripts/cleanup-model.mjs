@@ -8,10 +8,15 @@
  *      trailer, trees, car-camping scatter) via meshoptimizer.
  *   3. Prunes all resources orphaned by the above.
  *
- * Written for the 18/08/2026 "Form Festival 2026_19" export; the removal
+ * Updated for the 25/08/2026 "Form Festival 2026_20" export; the removal
  * and simplify lists below are per-export and should be reviewed whenever
  * a new .blend export arrives (compare against the previous export with
  * scripts/inspect-all.mjs, and re-check node names).
+ *
+ * 25/08/2026 note: the export is now produced by us via
+ * scripts/blender-export-visible.py (use_visible=True), so the hidden-object
+ * leakage the 18/08 list stripped (terrain stacks, profile curves, backups —
+ * see git history) can no longer occur. Only export artifacts remain.
  *
  * Run:  node scripts/cleanup-model.mjs <input.gltf> <output-dir>
  * Then: node scripts/optimize-model.mjs "<output-dir>/<name>.gltf"
@@ -24,83 +29,26 @@ import { resolve, basename } from 'path';
 import { mkdirSync } from 'fs';
 
 /**
- * Blender working-file objects that must not ship (exact node names).
+ * Export artifacts that must not ship (exact node names).
  *
  * Ground truth: scripts/blender-hidden-objects.py run headlessly against the
  * .blend (`/Applications/Blender.app/Contents/MacOS/Blender -b <file.blend>
  * --python scripts/blender-hidden-objects.py`) lists every object hidden via
- * eye/render/collection — the 18/08/2026 export included hidden objects
- * (export was not limited to "Visible Objects"), so they all leaked into the
- * glTF. Objects hidden in Blender but deliberately handled at runtime by
- * src/scene/model.js HIDDEN_MESHES (CampingTent + 12 vehicles) are NOT
- * removed here, to keep validate-model green until the remap phase.
+ * eye/render/collection. The 25/08/2026 export (ours, visible-only) leaked
+ * NO hidden objects — verified node-by-node against that audit. What remains
+ * are meshless empty nodes: visible CURVE objects that export as bare
+ * transform nodes with zero geometry.
+ *
+ * NOTE: 'Durango Tent.001/.002/.003' are render-hidden but eye-VISIBLE in
+ * Blender, so they export and SHIP deliberately (Oasis/The Shop tents —
+ * same pattern as the old CampingTent).
  */
 const NODES_TO_REMOVE = [
-  // Duplicate full-map terrain stack — the app renders only the CamCrop set
-  // (Terrain_Step_Terrace_CamCrop + Terrain_Terraced_CamCrop.001/.002).
-  'Terrain_Base',
-  'Terrain_Step',
-  'Terrain_Step_Terrace',
-  'Terrain_Terraced',
-  'Terrain_Terraced_CamCrop', // un-suffixed = second full-map terrain variant
-  // Road-boolean profile curves + reference empties
-  'profile_paths_footway',
-  'profile_paths_steps',
-  'profile_roads_residential',
-  'profile_roads_service',
-  'profile_roads_track',
-  'profile_roads_unclassified',
-  'Boolean_Path1',
-  'Boolean_Path2',
-  'Empty',
-  'EmptySpot',
-  'Satelite View',
-  // ── Hidden in Blender (18/08/2026 .blend), leaked into export ────────────
-  // Untrimmed/old road network — some extend past the terrain into the void.
-  // Only Road_Trimmed + map.osm_roads_residential are visible in Blender.
-  'Road_Regular',
-  'map.osm_roads_unclassified.001',
-  'map.osm_roads_unclassified.002',
-  'map.osm_roads_track.003',
-  'map.osm_roads_service',
-  'map.osm_paths_footway.001',
-  // Water features outside the cropped terrain / hidden
-  'map.osm_water.001',
-  'Pond',
-  // Old envelop tent at the new site — hidden: envelop stays pin-only
-  'Old Envelop Tent',
-  // Former Bodega tent — client confirmed removal 18/08/2026 (Soteria is the
-  // Cube.009 building, NOT this tent).
-  'Large Tent.001',
-  // Hidden building backups
-  'Side Buildings',
-  'map.osm_buildings.001',
-  'map.osm_buildings.002',
-  'map.osm_buildings.003',
-  // Hidden prop backups ("Old Maples" / "Trees" / "Old Trees" / "RV Backups"
-  // collections). The visible instances are the Placement_* nodes, whose
-  // shared mesh data survives prune() because it is still referenced.
-  'Trailer_Trailer_0.002',
-  // NOTE: 'Durango Tent.001/.002' are NOT removed — they are only
-  // render-hidden in Blender (eye-visible), and the CAD labels them as the
-  // OASIS food tents. Same visibility pattern as CampingTent, which has
-  // always shipped.
-  'Material2.001',
-  'Material2.002',
-  'Material2.003',
-  'Material2.004',
-  'Material2.005',
-  'Material2.350',
-  'Roundcube.005',
-  'Roundcube.006',
-  'Tree_Acer-pseudoplatanus_B_summer',
-  'Tree_Acer-pseudoplatanus_C_summer',
-  'Tree_Acer-pseudoplatanus_D_summer',
-  'Tree_Chamaecyparis-lawsoniana_C_spring-summer-autumn.001',
-  'RV_Class1.001',
-  'RV_Class1.003',
-  'RV_Class2.001',
-  'RV_Class2.002',
+  // Visible road-track curves with no mesh after export — empty nodes.
+  'map.osm_roads_track.001',
+  'map.osm_roads_track.002',
+  'map.osm_roads_track.004',
+  'map.osm_roads_track.005',
 ];
 
 /**

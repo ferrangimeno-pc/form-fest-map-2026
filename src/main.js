@@ -419,62 +419,172 @@ function _fitCameraToLocations(locations, camera) {
  * centered and fully visible.
  */
 function _fitCameraMobile(locations, camera) {
-  const box = new Box3();
+  // The camera is a fixed 45° NE-down view (position = target + d·(0.5, 0.9, 0.5)),
+  // so SCREEN axes in world XZ are diagonal, not axis-aligned:
+  //   screen-right   ∝ sx = (x − z)/√2
+  //   ground "depth" ∝ dp = (x + z)/√2   (projects onto screen-vertical)
+  const S2 = Math.SQRT2;
+  const sxOf = (x, z) => (x - z) / S2;
+  const dpOf = (x, z) => (x + z) / S2;
+
+  // Per-location EXTREME POINTS sampled from real mesh vertices — world AABB
+  // corners are phantom for rotated meshes (the diagonal car-camping lot's box
+  // corner sits in empty desert, which skewed the Camp centering). Sampling
+  // actual geometry keeps both the framing and the centering honest.
+  const pins = [];        // { loc } for label constraints
+  const extremePts = [];  // world Vector3s that bound the content on screen
+  let sxMin = Infinity, sxMax = -Infinity, dpMin = Infinity, dpMax = -Infinity;
+  let yMin = Infinity, yMax = -Infinity;
+  const v = new Vector3();
   locations.forEach((loc) => {
+    let ptSxMin = null, ptSxMax = null, ptDpMin = null, ptDpMax = null, ptYMax = null;
+    let bSxMin = Infinity, bSxMax = -Infinity, bDpMin = Infinity, bDpMax = -Infinity, bYMax = -Infinity;
+    const take = (wx, wy, wz) => {
+      const sx = sxOf(wx, wz), dp = dpOf(wx, wz);
+      if (sx < bSxMin) { bSxMin = sx; ptSxMin = new Vector3(wx, wy, wz); }
+      if (sx > bSxMax) { bSxMax = sx; ptSxMax = new Vector3(wx, wy, wz); }
+      if (dp < bDpMin) { bDpMin = dp; ptDpMin = new Vector3(wx, wy, wz); }
+      if (dp > bDpMax) { bDpMax = dp; ptDpMax = new Vector3(wx, wy, wz); }
+      if (wy > bYMax)  { bYMax = wy;  ptYMax  = new Vector3(wx, wy, wz); }
+      sxMin = Math.min(sxMin, sx); sxMax = Math.max(sxMax, sx);
+      dpMin = Math.min(dpMin, dp); dpMax = Math.max(dpMax, dp);
+      yMin = Math.min(yMin, wy); yMax = Math.max(yMax, wy);
+    };
     let touched = false;
     getObjectsForLocation(loc.id).forEach((name) => {
       const mesh = getMesh(name);
-      if (mesh) { box.expandByObject(mesh); touched = true; }
+      const posAttr = mesh?.geometry?.attributes?.position;
+      if (!posAttr) return;
+      touched = true;
+      const stride = Math.max(1, Math.floor(posAttr.count / 400));
+      for (let i = 0; i < posAttr.count; i += stride) {
+        v.fromBufferAttribute(posAttr, i).applyMatrix4(mesh.matrixWorld);
+        take(v.x, v.y, v.z);
+      }
     });
     if (!touched) {
       const p = loc.pinPosition;
-      box.expandByPoint(new Vector3(p.x - 0.3, p.y - 0.2, p.z - 0.3));
-      box.expandByPoint(new Vector3(p.x + 0.3, p.y + 0.2, p.z + 0.3));
+      take(p.x - 0.3, p.y - 0.2, p.z - 0.3);
+      take(p.x + 0.3, p.y + 0.2, p.z + 0.3);
     }
+    [ptSxMin, ptSxMax, ptDpMin, ptDpMax, ptYMax].forEach((pt) => { if (pt) extremePts.push(pt); });
+    pins.push({ loc });
   });
-  if (box.isEmpty()) return;
+  if (pins.length === 0 || !isFinite(sxMin)) return;
 
-  const size = new Vector3();   box.getSize(size);
-  const center = new Vector3(); box.getCenter(center);
+  let sxCtr = (sxMin + sxMax) / 2; // both centers refined by the probe loop below
+  let dpCtr = (dpMin + dpMax) / 2;
 
-  // Bar compensation (category bar sits at bottom)
-  const barEl   = document.getElementById('categories-bar');
-  const barH    = barEl ? barEl.getBoundingClientRect().height : 120;
+  // Safe frame: the top HUD (Back button, clock/day-night toggle, and the DEV
+  // HDRI panel while it exists) and the bottom category bar both eat into the
+  // usable viewport — labels must land BETWEEN them, not just on screen
+  // (client bug 25/08/2026: the car-camping restroom's label hid under the HUD).
   const screenH = container.clientHeight;
-  const barFraction     = Math.min(barH / screenH, 0.40);
-  const barCompensation = 1 / (1 - barFraction);
-
-  // Aspect-aware distance: at 45° FOV the visible half-width = dist*tan(22.5°)*aspect,
-  // half-height = dist*tan(22.5°). Camera pitch ≈ 45° NE-down so the XZ plane projects
-  // to screen with span.x → horizontal, (span.z·cos45 + span.y·sin45) → vertical.
-  const fov         = (camera.fov || 45) * Math.PI / 180;
-  const aspect      = Math.max(camera.aspect || 0.46, 0.3);
-  const tanHalfFov  = Math.tan(fov / 2);
-  const vertWorld   = size.z * Math.cos(Math.PI / 4) + size.y * Math.sin(Math.PI / 4);
-  const horizWorld  = size.x;
-  const distForWidth  = (horizWorld / 2) / (tanHalfFov * aspect);
-  const distForHeight = (vertWorld  / 2) / tanHalfFov;
-  const margin      = 1.45; // padding so mesh isn't flush against the edges
-  const distance    = Math.min(
-    Math.max(Math.max(distForWidth, distForHeight) * margin * barCompensation, 5),
-    16
-  );
-
-  // Target = bbox center, shifted toward camera so bottom bar doesn't cover content.
-  const barVertOffset = barFraction * distance * 0.35;
-  const targetX = center.x + barVertOffset * 0.707;
-  const targetZ = center.z + barVertOffset * 0.707;
-  const targetY = Math.max(center.y, 0.8); // lift above ground
-
-  // 45° NE-down camera relative to target (matches desktop view angle).
-  const camX = targetX + distance * 0.5;
-  const camY = distance * 0.9;
-  const camZ = targetZ + distance * 0.5;
-
-  flyTo(camera, {
-    position: { x: camX, y: camY, z: camZ },
-    target:   { x: targetX, y: targetY, z: targetZ },
+  const screenW = container.clientWidth || window.innerWidth;
+  let topUiPx = 0;
+  ['back-btn', 'lighting-toggle', 'hdri-panel'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || el.offsetParent === null) return; // hidden (e.g. dev panel in prod)
+    topUiPx = Math.max(topUiPx, el.getBoundingClientRect().bottom);
   });
+  const barEl = document.getElementById('categories-bar');
+  const botUiPx = barEl ? screenH - barEl.getBoundingClientRect().top : 120;
+  const PAD = 10;
+  const topLim = 1 - (2 * (topUiPx + PAD)) / screenH;                       // NDC ceiling
+  const botLim = -1 + (2 * (Math.min(botUiPx, 0.4 * screenH) + PAD)) / screenH; // NDC floor
+  const LIM = 0.97; // horizontal NDC safe frame (small edge padding)
+
+  const fov        = (camera.fov || 45) * Math.PI / 180;
+  const aspect     = Math.max(camera.aspect || 0.46, 0.3);
+  const tanHalfFov = Math.tan(fov / 2);
+
+  // Initial estimate from spans at the target's depth (probe loop refines).
+  const distForWidth  = Math.max(((sxMax - sxMin) / 2) * 1.08, 1.0) / (tanHalfFov * aspect);
+  const vertWorld     = (dpMax - dpMin) * Math.cos(Math.PI / 4) + (yMax - yMin) * Math.sin(Math.PI / 4);
+  const distForHeight = ((vertWorld / 2) * 1.15 / tanHalfFov) * (2 / Math.max(topLim - botLim, 0.8));
+
+  // Cap 48 (was 16 pre-25/08/2026): Camp needs ~40, Restrooms ~17 with this
+  // math. updateFogForDistance's second falloff segment keeps wide views
+  // readable; flyTo expands controls.maxDistance to the destination radius.
+  const MAX_DIST = 48;
+  let distance = Math.min(Math.max(Math.max(distForWidth, distForHeight), 5), MAX_DIST);
+
+  // Camera pose for a given distance/centers: target = screen-space center
+  // mapped back to world (x = (sx+dp)/√2, z = (dp−sx)/√2); 45° NE-down offset.
+  const yMid = Math.max((yMin + yMax) / 2, 0.8);
+  const mkPose = (dist) => {
+    const targetX = (sxCtr + dpCtr) / S2;
+    const targetZ = (dpCtr - sxCtr) / S2;
+    return {
+      position: { x: targetX + dist * 0.5, y: dist * 0.9, z: targetZ + dist * 0.5 },
+      target:   { x: targetX, y: yMid, z: targetZ },
+    };
+  };
+
+  // Measure the content's projected NDC interval at a pose: real extreme
+  // points + every pin anchor with its label extents (fixed pixel sizes).
+  const probe = camera.clone();
+  const measure = (pose) => {
+    probe.position.set(pose.position.x, pose.position.y, pose.position.z);
+    probe.lookAt(pose.target.x, pose.target.y, pose.target.z);
+    probe.updateMatrixWorld(true);
+    let L = Infinity, R = -Infinity, T = -Infinity, B = Infinity;
+    extremePts.forEach((pt) => {
+      const p = pt.clone().project(probe);
+      L = Math.min(L, p.x); R = Math.max(R, p.x);
+      T = Math.max(T, p.y); B = Math.min(B, p.y);
+    });
+    pins.forEach(({ loc }) => {
+      const p = loc.pinPosition;
+      const ndc = new Vector3(p.x, p.y, p.z).project(probe);
+      const labelHalfNdc = (34 + (loc.name?.length || 8) * 8) / screenW;
+      L = Math.min(L, ndc.x - labelHalfNdc);
+      R = Math.max(R, ndc.x + labelHalfNdc);
+      T = Math.max(T, ndc.y + (2 * 110) / screenH); // stem + label above anchor
+      B = Math.min(B, ndc.y);
+    });
+    return { L, R, T, B };
+  };
+
+  // Refine: perspective swings near-side content wider than the at-target-depth
+  // estimate, so each pass (a) RECENTERS both axes on the measured midpoint —
+  // horizontal against the screen edges, vertical against the HUD-safe band —
+  // and (b) zooms out only for whatever recentering can't absorb.
+  for (let i = 0; i < 5; i++) {
+    const { L, R, T, B } = measure(mkPose(distance));
+    const kx = distance * tanHalfFov * aspect;       // world-per-NDC horizontally at target
+    const ky = (distance * tanHalfFov) / 0.707;      // ground-dp per vertical NDC (pitch≈45°)
+    sxCtr += ((L + R) / 2) * kx;
+    dpCtr -= ((T + B) / 2 - (topLim + botLim) / 2) * ky; // +dp moves content UP on screen
+    const scale = Math.max((R - L) / (2 * LIM), (T - B) / Math.max(topLim - botLim, 0.5), 1);
+    if (scale <= 1.005 && i > 0) break;
+    distance = Math.min(distance * scale, MAX_DIST);
+  }
+
+  const finalPose = mkPose(distance);
+  if (import.meta.env.DEV) {
+    // Verification dump: content interval + per-pin label extents in NDC at
+    // the destination. L/R must be within ±0.97; every top ≤ topLim (HUD-safe).
+    const { L, R, T, B } = measure(finalPose);
+    const report = pins.map(({ loc }) => {
+      const p = loc.pinPosition;
+      const ndc = new Vector3(p.x, p.y, p.z).project(probe); // probe still at finalPose
+      const labelHalfNdc = (34 + (loc.name?.length || 8) * 8) / screenW;
+      return {
+        id: loc.id,
+        left: +(ndc.x - labelHalfNdc).toFixed(2),
+        right: +(ndc.x + labelHalfNdc).toFixed(2),
+        top: +(ndc.y + (2 * 110) / screenH).toFixed(2),
+      };
+    });
+    console.log('[FitMobile]', JSON.stringify({
+      distance: +distance.toFixed(1),
+      topLim: +topLim.toFixed(2), botLim: +botLim.toFixed(2),
+      content: { L: +L.toFixed(2), R: +R.toFixed(2), T: +T.toFixed(2), B: +B.toFixed(2) },
+      report,
+    }));
+  }
+  flyTo(camera, finalPose);
 }
 
 // Boot

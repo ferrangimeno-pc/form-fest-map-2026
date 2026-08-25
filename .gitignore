@@ -12,3 +12,6 @@ Thumbs.db
 # Source files too large for Git (keep in local storage / shared drive)
 3d map/
 Design UI/
+
+# Local model backups (would otherwise ship in the Vercel build from public/)
+public/assets/model/*.bak*

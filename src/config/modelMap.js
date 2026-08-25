@@ -75,9 +75,11 @@ export const MODEL_MAP = {
   'Roundcube004':     'foundry',
   // Bodega removed entirely in the 18/08/2026 update (node "Large Tent" is
   // gone from the model, and the bodega/bodega-shop entries are deleted).
-  // Oasis — the NORTH Durango tent NW of the Apse (CAD: "43'D DURANGO
-  // OASIS"). Its southern twin is The Shop Bar (see BARS). Single-prim node.
+  // Oasis — 25/08/2026 model has THREE Durango tents in a north–south row NW
+  // of the Apse. Client-directed: the TOP TWO (north, z −1.25 / −0.88) are
+  // the Oasis; the bottom tent (Durango_Tent003) is The Shop Bar (see BARS).
   'Durango_Tent001':  'oasis',
+  'Durango_Tent002':  'oasis',
 
   // ── SHOP — same building as before (map.osm_buildings.008, 3 prims) at
   // scaled (-4.03, 1.40, -0.55); the location is now NAMED "Lab" (18/08/2026)
@@ -97,21 +99,29 @@ export const MODEL_MAP = {
   'Hill_Shades':      'slab',
   // Rooftop — the flat-roof complex east of the amphitheater bowl (node
   // "map.osm_buildings.015", mesh map.osm_buildings.017, 3 prims).
-  'maposm_buildings017':   'rooftop',
+  // 25/08/2026: a NEW node literally named "map.osm_buildings.017" (the
+  // nucleus mesh, see below) reserves the "maposm_buildings017" base name in
+  // GLTFLoader's phase-1 pass, so these prims shift to _1/_2/_3 (the bare
+  // name no longer exists). The complex's new wall geometry (node .013 →
+  // maposm_buildings013_1/_2) stays unmapped scenery — only the roof pad
+  // highlights, matching client-approved visuals.
   'maposm_buildings017_1': 'rooftop',
   'maposm_buildings017_2': 'rooftop',
-  // nucleus stays pin-only (it sits on the CAD's "ARCO NUCLEUS" building,
-  // which is bar-1's mesh).
+  'maposm_buildings017_3': 'rooftop',
+  // Nucleus — no longer pin-only (25/08/2026): the artist added a small mesh
+  // attached to the Lab's NE edge (node "map.osm_buildings.017", mesh-def
+  // map.osm_buildings.012, 2 prims at world −3.91, −0.91).
+  'maposm_buildings012_1': 'nucleus',
+  'maposm_buildings012_2': 'nucleus',
 
-  // ── GLAMPING — single-prim node "Placement_CampingTents" (mesh "Vert")
-  // (renamed from the previous "camping" location).
-  // Stray `CampingTent` cone is hidden via HIDDEN_MESHES in model.js.
+  // ── GLAMPING — single-prim node "Placement_CampingTents" (mesh "Cone")
+  // (renamed from the previous "camping" location). The stray CampingTent
+  // cone and the old 11-vehicle cluster are gone from the 25/08/2026 model
+  // entirely (HIDDEN_MESHES in model.js is now empty).
   'Placement_CampingTents': 'glamping',
 
   // ── GLAMPING RVs — van cluster from node "Placement_ParkingLot.001" ──────
-  // 18/08/2026: the node now uses mesh "Cube.034" (2 prims, real RV models)
-  // instead of "Cube.017". Same position. The old 11-vehicle cluster is still
-  // hidden via HIDDEN_MESHES (residual from previous export).
+  // (mesh "Cube.034", 2 prims, real RV models — unchanged since 18/08/2026).
   'Cube034':          'glamping-rvs',
   'Cube034_1':        'glamping-rvs',
 
@@ -136,12 +146,15 @@ export const MODEL_MAP = {
   'maposm_buildings011_1_gs': 'guest-services',
   'maposm_buildings011_2_gs': 'guest-services',
   'maposm_buildings011_3_gs': 'guest-services',
-  // Soteria Safe Space — client-corrected 18/08/2026: it is the "Cube.009"
-  // building (node+mesh "Cube.009", 2 prims → Cube009_1/_2; the bare Cube009
-  // name is consumed by the phase-1 node reservation). The former host mesh
-  // (Large Tent.001 = old Bodega tent) is stripped from the GLB entirely.
-  'Cube009_1':        'soteria',
-  'Cube009_2':        'soteria',
+  // Soteria Safe Space — client-corrected 25/08/2026: it is the small cube
+  // building just EAST of Medical (world −4.50, −2.08), which is part of the
+  // map.osm_buildings.011 cluster. model.js carves it out of the 011 prims at
+  // load time (same mechanism as guest-services). The former host mesh
+  // Cube.009 (the 4-trailer pad at −4.63, −3.26) is now unmapped scenery —
+  // no label, no highlight.
+  'maposm_buildings011_1_soteria': 'soteria',
+  'maposm_buildings011_2_soteria': 'soteria',
+  'maposm_buildings011_3_soteria': 'soteria',
   // Medical — node "Cube.005" (mesh Cube.015, 2 prims) → runtime Cube015/_1.
   // NOTE: this node's name also bumps the cafe Cube005_* prims up by one (see FOOD).
   'Cube015':          'medical',
@@ -153,9 +166,9 @@ export const MODEL_MAP = {
   'Cube003_1':        'bar-1',
   'Cube003_2':        'bar-1',
   // bar-2 (BarLocation.001) removed entirely in the 18/08/2026 update.
-  // The Shop Bar and Craft Beer — the SOUTH Durango tent NW of the Apse
-  // (CAD: "43'D DURANGO THE SHOP"). Twin of the Oasis tent.
-  'Durango_Tent002':  'the-shop-bar',
+  // The Shop Bar and Craft Beer — the BOTTOM (southernmost, z −0.52) of the
+  // three Durango tents. The top two are the Oasis (see FOOD).
+  'Durango_Tent003':  'the-shop-bar',
 };
 
 /**

@@ -314,14 +314,26 @@ function smoothstep(t) {
 export function updateFogForDistance(camDist) {
   if (!_scene?.fog || window.innerWidth >= 768) return;
 
-  // Fog scaling kicks in beyond NEAR_DIST and drops to MIN_SCALE at FAR_DIST.
-  // Range matches mobile minDistance (4) → maxDistance (16).
-  const NEAR_DIST = 7;   // below this, full preset density
-  const FAR_DIST  = 16;  // at max zoom-out, MIN_SCALE density
-  const MIN_SCALE = 0.40; // 40% of preset at farthest zoom
+  // Fog scaling kicks in beyond NEAR_DIST. Piecewise-linear falloff:
+  //   ≤7            → 1.00 (full preset density)
+  //   7 → 16        → 1.00 → 0.40 (original curve, interactive zoom range)
+  //   16 → 34       → 0.40 → 0.15 (25/08/2026: wide category fits — Camp /
+  //                   Restrooms fly out to ~27–33; without this second
+  //                   segment the map drowns in fog at those radii)
+  const NEAR_DIST = 7;
+  const MID_DIST  = 16;
+  const FAR_DIST  = 34;
+  const MID_SCALE = 0.40;
+  const MIN_SCALE = 0.15;
 
-  const t = Math.max(0, Math.min(1, (camDist - NEAR_DIST) / (FAR_DIST - NEAR_DIST)));
-  const scale = 1.0 - t * (1.0 - MIN_SCALE); // linear falloff from 1.0 → MIN_SCALE
+  let scale;
+  if (camDist <= MID_DIST) {
+    const t = Math.max(0, (camDist - NEAR_DIST) / (MID_DIST - NEAR_DIST));
+    scale = 1.0 - t * (1.0 - MID_SCALE);
+  } else {
+    const t = Math.min(1, (camDist - MID_DIST) / (FAR_DIST - MID_DIST));
+    scale = MID_SCALE - t * (MID_SCALE - MIN_SCALE);
+  }
 
   const base = _scene.fog._baseDensity ?? _scene.fog.density;
   _scene.fog.density = base * scale;

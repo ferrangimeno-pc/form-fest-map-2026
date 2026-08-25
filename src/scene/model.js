@@ -5,18 +5,12 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 const MODEL_PATH = 'assets/model/formFestMap.glb';
 
 /**
- * Meshes to hide after loading — residual scatter from the 23/04/2026 export:
- *   - `CampingTent` — stray cone that isn't part of the tent cluster.
- *   - 11 small vehicle nodes (`Truck`/`Van`/`Car`/`Hatchback` + suffixed). The
- *     parking-lot surface (`Placement_ParkingLot`) stays visible as scenery;
- *     the RV pin maps to the `Placement_ParkingLot.001` van cluster.
+ * Meshes to hide after loading. Empty since the 25/08/2026 model — the export
+ * is now visible-objects-only (scripts/blender-export-visible.py), so the
+ * residual scatter this used to hide (stray CampingTent cone, 11 vehicle
+ * nodes) no longer ships. The mechanism stays for future use.
  */
-const HIDDEN_MESHES = [
-  'CampingTent',
-  'Truck', 'Van', 'Car', 'Hatchback',
-  'Truck001', 'Van001', 'Car001', 'Hatchback002',
-  'Car002', 'Car003', 'Car005',
-];
+const HIDDEN_MESHES = [];
 
 /**
  * Substrings that mark a mesh as genuinely needing DoubleSide rendering —
@@ -198,7 +192,7 @@ export async function loadModel(scene, onProgress) {
         // on the first render, but we need correct world positions right now).
         modelRoot.updateMatrixWorld(true);
 
-        // Split maposm_buildings011 into GS sub-cluster and non-GS remainder
+        // Split maposm_buildings011 into GS + Soteria sub-clusters and remainder
         split011Meshes();
 
         // Fix terraced paved areas that export ~2× brighter than the main terrain.
@@ -247,15 +241,16 @@ export async function loadModel(scene, onProgress) {
 
 
 /**
- * Split a mesh's geometry into two parts: triangles whose world-space (x,z)
- * centroid falls inside `box`, and everything else.
- * Returns { inside: BufferGeometry|null, outside: BufferGeometry|null }.
+ * Split a mesh's geometry into named parts: for each triangle, its world-space
+ * (x,z) centroid is tested against each carve box in order — first match wins;
+ * unmatched triangles fall into the `outside` bucket.
+ * Returns { parts: { [key]: BufferGeometry|null }, outside: BufferGeometry|null }.
  *
  * The 011 OSM building mesh spans multiple physically separate sub-clusters.
- * This lets us isolate just the Guest-Services cluster at load time without
- * requiring a Blender re-export.
+ * This lets us isolate the Guest-Services and Soteria buildings at load time
+ * without requiring a Blender re-export.
  */
-function splitGeometryByWorldBox(geometry, matrixWorld, box) {
+function splitGeometryByWorldBoxes(geometry, matrixWorld, carves) {
   const pos = geometry.attributes.position;
   const nor = geometry.attributes.normal;
   const uv  = geometry.attributes.uv;
@@ -264,7 +259,8 @@ function splitGeometryByWorldBox(geometry, matrixWorld, box) {
 
   const triCount = idx ? idx.count / 3 : pos.count / 3;
 
-  const buckets = { inside: [], outside: [] };
+  const buckets = { outside: [] };
+  for (const { key } of carves) buckets[key] = [];
   for (let t = 0; t < triCount; t++) {
     const i0 = idx ? idx.getX(t * 3)     : t * 3;
     const i1 = idx ? idx.getX(t * 3 + 1) : t * 3 + 1;
@@ -277,8 +273,11 @@ function splitGeometryByWorldBox(geometry, matrixWorld, box) {
       cz += mw[2] * lx + mw[6] * ly + mw[10] * lz + mw[14];
     }
     cx /= 3; cz /= 3;
-    const key = (cx >= box.xMin && cx <= box.xMax && cz >= box.zMin && cz <= box.zMax)
-      ? 'inside' : 'outside';
+    let key = 'outside';
+    for (const carve of carves) {
+      const b = carve.box;
+      if (cx >= b.xMin && cx <= b.xMax && cz >= b.zMin && cz <= b.zMax) { key = carve.key; break; }
+    }
     buckets[key].push(i0, i1, i2);
   }
 
@@ -305,29 +304,39 @@ function splitGeometryByWorldBox(geometry, matrixWorld, box) {
     return geo;
   }
 
-  return { inside: buildGeo(buckets.inside), outside: buildGeo(buckets.outside) };
+  const parts = {};
+  for (const { key } of carves) parts[key] = buildGeo(buckets[key]);
+  return { parts, outside: buildGeo(buckets.outside) };
 }
 
 /**
- * Split the maposm_buildings011 primitives into Guest-Services and non-GS meshes.
- * The 011 GLTF node spans three physically separate building sub-clusters.
- * We isolate only the sub-cluster at the road junction (Cluster B, near bodega/bar area)
- * so only those buildings light up when Guest Services is selected.
+ * Split the maposm_buildings011 primitives into Guest-Services, Soteria, and
+ * remainder meshes. The 011 GLTF node spans several physically separate
+ * building sub-clusters (each prim covers the FULL extent — they are layers,
+ * not separate buildings), so interactive buildings are carved by world box:
+ *   - Guest Services: the L-shaped complex at the road junction (−4.56, −1.49)
+ *   - Soteria Safe Space: the small cube just east of Medical (−4.50, −2.08)
+ *     (client-directed 25/08/2026 — was the Cube.009 trailer pad before)
  *
  * Mesh naming:
- *   maposm_buildings011_N      → kept as the non-GS portion (still indexed, not in modelMap)
- *   maposm_buildings011_N_gs   → GS-only portion (added to meshes index, mapped in modelMap)
+ *   maposm_buildings011_N          → kept as the remainder (indexed, not in modelMap)
+ *   maposm_buildings011_N_gs      → GS-only portion (mapped in modelMap)
+ *   maposm_buildings011_N_soteria → Soteria portion (mapped in modelMap)
  */
 function split011Meshes() {
-  // World-space (post 0.027 scale) bounding box enclosing the GS sub-cluster only.
-  // Cluster B: x ∈ [-5.1, -4.0], z ∈ [-2.1, -0.9]
-  const GS_BOX = { xMin: -5.1, xMax: -4.0, zMin: -2.1, zMax: -0.9 };
+  // World-space (post 0.027 scale) boxes. Cluster bounds measured from the
+  // 25/08/2026 export: GS L-building x[-4.78..-4.43] z[-1.65..-1.34];
+  // Soteria cube x[-4.57..-4.44] z[-2.15..-2.00].
+  const CARVES = [
+    { key: 'gs',      box: { xMin: -4.85, xMax: -4.35, zMin: -1.72, zMax: -1.28 } },
+    { key: 'soteria', box: { xMin: -4.65, xMax: -4.36, zMin: -2.23, zMax: -1.92 } },
+  ];
 
   ['maposm_buildings011_1', 'maposm_buildings011_2', 'maposm_buildings011_3'].forEach((name) => {
     const src = meshes[name];
     if (!src) return;
 
-    const { inside, outside } = splitGeometryByWorldBox(src.geometry, src.matrixWorld, GS_BOX);
+    const { parts, outside } = splitGeometryByWorldBoxes(src.geometry, src.matrixWorld, CARVES);
 
     function makeMesh(geo, newName) {
       if (!geo) return;
@@ -349,11 +358,12 @@ function split011Meshes() {
       meshes[newName] = m;
     }
 
-    makeMesh(inside,  name + '_gs');
-    makeMesh(outside, name + '_nonGS');
+    makeMesh(parts.gs,      name + '_gs');
+    makeMesh(parts.soteria, name + '_soteria');
+    makeMesh(outside,       name + '_nonGS');
 
     // Remove original split-source mesh from the scene and index;
-    // its geometry is now covered by the two new meshes.
+    // its geometry is now covered by the new meshes.
     src.parent.remove(src);
     delete meshes[name];
   });
