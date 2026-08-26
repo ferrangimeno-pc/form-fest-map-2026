@@ -7,7 +7,7 @@ import { initControls, updateControls, flyTo, resetCamera, getControls } from '.
 import { initPostProcessing, renderPostProcessing, updateBloomForDistance, setCategoryBloom, tickBloomLerp } from './scene/postprocessing.js';
 import { updateProgress, hideLoader, showLoaderError } from './ui/loader.js';
 import { initCategories } from './ui/categories.js';
-import { initPinRenderer, showPins, hidePins, renderPins } from './ui/pins.js';
+import { initPinRenderer, showPins, showOverviewPins, hidePins, renderPins } from './ui/pins.js';
 import { initModal, openModal } from './ui/modal.js';
 import { initLightingToggle } from './ui/lightingToggle.js';
 import { initRaycast, updateRaycast, clearHoverState, applyIdleTints } from './ui/raycast.js';
@@ -27,8 +27,12 @@ import locationsData from './data/locations.json';
 const container = document.getElementById('map-container');
 
 // Touch devices have no hover state, so the "tap building → modal opens with no
-// map context" experience is disorienting. On touch we render every pin from the
-// start so users can see what they're tapping. Desktop/mouse users keep the
+// map context" experience is disorienting. On touch we mark every location from
+// the start — but as ADAPTIVE pins (showOverviewPins): category-colored dots
+// that promote to full label chips only where there's screen room, resolved by
+// priority when labels would collide. Full labels for everything at once buried
+// ~80% of the portrait viewport. Category selection still shows regular full
+// pins (handleCategoryChange → showPins). Desktop/mouse users keep the
 // existing reveal-on-category UX.
 const IS_TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
@@ -38,7 +42,7 @@ function showAllPinsForTouch(scene) {
   // share a mesh/position with a primary pin) so they don't overlap by default.
   // They surface when their own category is selected.
   const pinnable = locationsData.locations.filter((l) => !l.secondary);
-  showPins(pinnable, scene, (locationId) => {
+  showOverviewPins(pinnable, scene, (locationId) => {
     const location = locationsData.locations.find((l) => l.id === locationId);
     if (location) openModal(location);
   });

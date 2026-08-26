@@ -452,6 +452,82 @@ html, body {
   pointer-events: none;
 }
 
+/* --- Adaptive overview pins (touch/mobile only) --- */
+/* The anchor sits exactly at the projected pin point (JS sets a bare
+   translate(sx,sy) — no centering offset). Two children offset themselves in
+   CSS: a category-colored dot centered on the anchor, and a regular .pin-label
+   chip suspended stem-height above it (the chip's ::after stem reaches back
+   down to the anchor). Toggling .pin-anchor--dot cross-morphs them — the chip
+   scales down into the dot (transform-origin at the anchor) while the dot pops
+   in, and vice versa. JS never writes transform on the children, so these
+   transitions can safely own it. */
+.pin-anchor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  will-change: transform;
+  animation: _anchorEnter 0.3s ease-out both;
+}
+
+@keyframes _anchorEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pin-anchor__dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--dot-color, #FFFFFF);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+  transition:
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+/* Invisible ~34px touch target around the 14px dot */
+.pin-anchor__dot::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+}
+
+.pin-anchor--dot .pin-anchor__dot {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+/* Chip suspended above the anchor by exactly the stem height, so the
+   .pin-label::after stem lands on the anchor point. */
+.pin-anchor .pin-label {
+  top: auto;
+  bottom: calc(1.5rem + 30px);
+  transform: translateX(-50%);
+  transform-origin: 50% calc(100% + 1.5rem + 30px);
+  transition:
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pin-anchor--dot .pin-label {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.25);
+  pointer-events: none;
+}
+
 /* --- Modal Overlay --- */
 #modal-overlay {
   position: fixed;
