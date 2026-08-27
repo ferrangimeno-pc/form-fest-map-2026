@@ -32,8 +32,10 @@ const MODEL_MAP_MESHES = [
   // 01/06/2026: a new "Cube.005" node (mesh Cube.015) shifts these to _1.._6 (was bare.._5).
   'Cube002_1', 'Cube002_2',
   'Cube005_1', 'Cube005_2', 'Cube005_3', 'Cube005_4', 'Cube005_5', 'Cube005_6',
-  // 18/08/2026: map.osm_buildings.009 mesh is 2 prims now (was 3)
-  'maposm_buildings009_1', 'maposm_buildings009_2',
+  // 18/08/2026: map.osm_buildings.009 mesh is 2 prims now (was 3).
+  // 27/08/2026: node "map.osm_buildings.009" (pool-area structure) deleted →
+  // base name freed → prims shift down to bare + _1.
+  'maposm_buildings009', 'maposm_buildings009_1',
   // Foundry
   'Roundcube002_1', 'Roundcube002_2', 'Roundcube003_1', 'Roundcube003_2', 'Roundcube004',
   // Oasis (top/north 2 tents) + The Shop Bar (bottom tent) — 25/08/2026:
@@ -50,17 +52,23 @@ const MODEL_MAP_MESHES = [
   // Restrooms (BathroomGA.004/.005 new in 18/08/2026)
   'BathroomGA002', 'BathroomGA003', 'BathroomGA012', 'BathroomGA001',
   'BathroomGA004', 'BathroomGA005',
-  // Guest Services + Soteria (both split at runtime from these prims — model.js
-  // generates maposm_buildings011_N_gs / _N_soteria / _N_nonGS; the _nonGS
-  // remainder is non-interactive). Soteria moved off Cube.009 (now unmapped
-  // trailer-pad scenery) 25/08/2026.
+  // Guest Services (split at runtime from these prims — model.js generates
+  // maposm_buildings011_N_gs / _N_nonGS; the _nonGS remainder is
+  // non-interactive). Soteria removed entirely 27/08/2026 (location + its
+  // cube geometry); Cube.009 stays unmapped trailer-pad scenery.
   'maposm_buildings011_1', 'maposm_buildings011_2', 'maposm_buildings011_3',
   // Medical (node Cube.005 / mesh Cube.015)
   'Cube015', 'Cube015_1',
   // Shop — map.osm_buildings.008 (3 prims, same as GitHub release)
   'maposm_buildings008_1', 'maposm_buildings008_2', 'maposm_buildings008_3',
-  // Bars — bar-1 = BarLocation.000 (bar-2 removed 18/08/2026)
+  // Bars — bar-1 = BarLocation.000; oasis-bar = new node BarLocation.001
+  // (mesh Cube.031, 2 prims — 27/08/2026, east of the Durango tents)
   'Cube003_1', 'Cube003_2',
+  'Cube031', 'Cube031_1',
+  // Food Trucks — node Cube.007 (mesh Cube.004, 2 prims — 27/08/2026, near
+  // the car-campground entrance). Base "Cube004" reserved by cafe node
+  // "Cube.004" → prims are _1/_2.
+  'Cube004_1', 'Cube004_2',
   // Hangouts — Spotify Lounge + Rooftop (node map.osm_buildings.015, mesh .017;
   // prims shifted to _1/_2/_3 in 25/08/2026 by the new node named .017) +
   // Nucleus (node map.osm_buildings.017, mesh .012 — small mesh on the Lab)

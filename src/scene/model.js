@@ -192,7 +192,7 @@ export async function loadModel(scene, onProgress) {
         // on the first render, but we need correct world positions right now).
         modelRoot.updateMatrixWorld(true);
 
-        // Split maposm_buildings011 into GS + Soteria sub-clusters and remainder
+        // Split maposm_buildings011 into the GS sub-cluster and remainder
         split011Meshes();
 
         // Fix terraced paved areas that export ~2× brighter than the main terrain.
@@ -247,8 +247,8 @@ export async function loadModel(scene, onProgress) {
  * Returns { parts: { [key]: BufferGeometry|null }, outside: BufferGeometry|null }.
  *
  * The 011 OSM building mesh spans multiple physically separate sub-clusters.
- * This lets us isolate the Guest-Services and Soteria buildings at load time
- * without requiring a Blender re-export.
+ * This lets us isolate the Guest-Services building at load time without
+ * requiring a Blender re-export.
  */
 function splitGeometryByWorldBoxes(geometry, matrixWorld, carves) {
   const pos = geometry.attributes.position;
@@ -310,26 +310,24 @@ function splitGeometryByWorldBoxes(geometry, matrixWorld, carves) {
 }
 
 /**
- * Split the maposm_buildings011 primitives into Guest-Services, Soteria, and
- * remainder meshes. The 011 GLTF node spans several physically separate
- * building sub-clusters (each prim covers the FULL extent — they are layers,
- * not separate buildings), so interactive buildings are carved by world box:
+ * Split the maposm_buildings011 primitives into Guest-Services and remainder
+ * meshes. The 011 GLTF node spans several physically separate building
+ * sub-clusters (each prim covers the FULL extent — they are layers, not
+ * separate buildings), so interactive buildings are carved by world box:
  *   - Guest Services: the L-shaped complex at the road junction (−4.56, −1.49)
- *   - Soteria Safe Space: the small cube just east of Medical (−4.50, −2.08)
- *     (client-directed 25/08/2026 — was the Cube.009 trailer pad before)
+ *
+ * (The Soteria Safe Space cube was a second carve until 27/08/2026, when the
+ * client removed the location and the artist deleted its geometry.)
  *
  * Mesh naming:
- *   maposm_buildings011_N          → kept as the remainder (indexed, not in modelMap)
- *   maposm_buildings011_N_gs      → GS-only portion (mapped in modelMap)
- *   maposm_buildings011_N_soteria → Soteria portion (mapped in modelMap)
+ *   maposm_buildings011_N      → kept as the remainder (indexed, not in modelMap)
+ *   maposm_buildings011_N_gs   → GS-only portion (mapped in modelMap)
  */
 function split011Meshes() {
   // World-space (post 0.027 scale) boxes. Cluster bounds measured from the
-  // 25/08/2026 export: GS L-building x[-4.78..-4.43] z[-1.65..-1.34];
-  // Soteria cube x[-4.57..-4.44] z[-2.15..-2.00].
+  // 25/08/2026 export: GS L-building x[-4.78..-4.43] z[-1.65..-1.34].
   const CARVES = [
-    { key: 'gs',      box: { xMin: -4.85, xMax: -4.35, zMin: -1.72, zMax: -1.28 } },
-    { key: 'soteria', box: { xMin: -4.65, xMax: -4.36, zMin: -2.23, zMax: -1.92 } },
+    { key: 'gs', box: { xMin: -4.85, xMax: -4.35, zMin: -1.72, zMax: -1.28 } },
   ];
 
   ['maposm_buildings011_1', 'maposm_buildings011_2', 'maposm_buildings011_3'].forEach((name) => {
@@ -358,9 +356,8 @@ function split011Meshes() {
       meshes[newName] = m;
     }
 
-    makeMesh(parts.gs,      name + '_gs');
-    makeMesh(parts.soteria, name + '_soteria');
-    makeMesh(outside,       name + '_nonGS');
+    makeMesh(parts.gs, name + '_gs');
+    makeMesh(outside,  name + '_nonGS');
 
     // Remove original split-source mesh from the scene and index;
     // its geometry is now covered by the new meshes.

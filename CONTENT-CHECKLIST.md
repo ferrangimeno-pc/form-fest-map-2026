@@ -10,6 +10,11 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 > Updated 18/08/2026 for the new model + category revision: Hangouts tab added
 > (purple), tabs reordered, "Camping Zones" → "Camp". Bodega, Grab and Go and
 > the second Bar were **removed**. Pool moved from Stages to Hangouts.
+>
+> Updated 27/08/2026 for the new model: Soteria Safe Space **removed**.
+> Food Trucks (car campground) + a new Bar (Oasis area) added. Foundry →
+> "Foundry: Otra Pizzeria". Slab → "The Slab: Bad Jimmy's" and moved
+> Hangouts → Food.
 
 ## Stages (4)
 
@@ -23,24 +28,31 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 > `envelop` moved NE of the Amphitheater (18/08/2026). It is pin-only — the
 > CAD marks it as a 41'-diameter Durango tent with no structure in the 3D model.
 
-## Food (3)
+## Food (5)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
 | `cafe` | Cafe | ☐ | ☐ |
-| `foundry` | Foundry | ☐ | ☐ |
+| `foundry` | Foundry: Otra Pizzeria | ☐ | ☐ |
 | `oasis` | Oasis | ☐ | ☐ |
+| `slab` | The Slab: Bad Jimmy's | ☐ | ☐ |
+| `food-trucks` | Food Trucks | ☐ | ☐ |
 
 > `oasis` is new (18/08/2026) — the two Durango tents west of the core.
+> `food-trucks` is new (27/08/2026) — four trucks near the car-campground
+> entrance. `slab` moved here from Hangouts (27/08/2026).
 
-## Bars (2)
+## Bars (3)
 
 | ID | Name | Confirmed name | Photo | Copy |
 |---|---|---|:-:|:-:|
 | `bar-1` | Bar (placeholder) | ☐ | ☐ | ☐ |
 | `the-shop-bar` | The Shop Bar and Craft Beer | — | ☐ | ☐ |
+| `oasis-bar` | Bar (placeholder) | ☐ | ☐ | ☐ |
 
 > `bar-1` still needs its real name confirmed by the client.
+> `oasis-bar` is new (27/08/2026) — east of the Oasis tents; needs its real
+> name too.
 
 ## Camp (3)
 
@@ -59,27 +71,26 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 > Renamed from "Shop" to "Lab" (18/08/2026); the tab keeps the "Shop" title.
 > The `id` stays `shop` — do not change it.
 
-## Guest Services (3)
+## Guest Services (2)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
 | `guest-services` | Guest Services | ☐ | ☐ |
-| `soteria` | Soteria Safe Space | ☐ | ☐ |
 | `medical` | Medical | ☐ | ☐ |
 
-## Hangouts (5)
+> Soteria Safe Space removed 27/08/2026 (client request).
+
+## Hangouts (4)
 
 | ID | Name | Photo | Copy |
 |---|---|:-:|:-:|
 | `pool` | Pool | ☐ | ☐ |
 | `spotify-lounge` | Spotify Lounge | ☐ | ☐ |
 | `nucleus` | Nucleus | ☐ | ☐ |
-| `slab` | Slab | ☐ | ☐ |
 | `rooftop` | Rooftop | ☐ | ☐ |
 
-> `slab` is the stepped shade structure SW of the amphitheater (the mesh that
-> used to be Envelop). `rooftop` is pin-only on the flat roof east of the
-> amphitheater bowl (positions confirmed 18/08/2026).
+> `rooftop` is pin-only on the flat roof east of the amphitheater bowl
+> (positions confirmed 18/08/2026). The Slab moved to Food (27/08/2026).
 
 ## Restrooms (4)
 
@@ -98,5 +109,6 @@ Tracks every item the **client** needs to deliver before launch. Tick a box when
 ## Site-wide content questions for the client
 
 - [ ] Confirm `bar-1` real name
+- [ ] Confirm `oasis-bar` real name (new bar in the Oasis area, 27/08/2026)
 - [ ] Final festival dates (currently not surfaced anywhere visible)
 - [ ] Any sponsor logos / partner logos to surface in the modal or elsewhere?

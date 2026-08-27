@@ -57,10 +57,12 @@ export const MODEL_MAP = {
   // though the visual footprint sits at the cafe (verified at runtime:
   // bbox center -5.71, 0.93 vs cafe pin -6.07, 0.88). DO NOT change to
   // `maposm_buildings004_N` — those keys don't exist at runtime.
-  // 18/08/2026: mesh map.osm_buildings.009 now has 2 prims (was 3) →
-  // maposm_buildings009_3 no longer exists.
+  // 18/08/2026: mesh map.osm_buildings.009 now has 2 prims (was 3).
+  // 27/08/2026: the unrelated NODE "map.osm_buildings.009" (a pool-area
+  // structure) was deleted by the artist, freeing the "maposm_buildings009"
+  // base name — these prims shift DOWN to bare + _1 (were _1/_2).
+  'maposm_buildings009':   'cafe',
   'maposm_buildings009_1': 'cafe',
-  'maposm_buildings009_2': 'cafe',
   // The cafe's BIG top structure — new node "map.osm_buildings.016" (mesh
   // map.osm_buildings.018, 3 prims) stacked on the 009 footprint at
   // scaled (-5.71, 0.93). Without these the main cafe building doesn't
@@ -80,6 +82,14 @@ export const MODEL_MAP = {
   // the Oasis; the bottom tent (Durango_Tent003) is The Shop Bar (see BARS).
   'Durango_Tent001':  'oasis',
   'Durango_Tent002':  'oasis',
+  // Food Trucks — new node "Cube.007" (mesh Cube.004, 2 prims) in the
+  // 27/08/2026 model: a row of four food trucks near the car-campground
+  // entrance (world −9.60, −10.57). The "Cube004" base name is reserved by
+  // the cafe node "Cube.004" in GLTFLoader's phase-1 pass, so the prims
+  // surface as _1/_2. (The mesh-def name "Cube.004" previously belonged to
+  // the removed bar-2 — unrelated, just Blender name recycling.)
+  'Cube004_1':        'food-trucks',
+  'Cube004_2':        'food-trucks',
 
   // ── SHOP — same building as before (map.osm_buildings.008, 3 prims) at
   // scaled (-4.03, 1.40, -0.55); the location is now NAMED "Lab" (18/08/2026)
@@ -146,15 +156,9 @@ export const MODEL_MAP = {
   'maposm_buildings011_1_gs': 'guest-services',
   'maposm_buildings011_2_gs': 'guest-services',
   'maposm_buildings011_3_gs': 'guest-services',
-  // Soteria Safe Space — client-corrected 25/08/2026: it is the small cube
-  // building just EAST of Medical (world −4.50, −2.08), which is part of the
-  // map.osm_buildings.011 cluster. model.js carves it out of the 011 prims at
-  // load time (same mechanism as guest-services). The former host mesh
-  // Cube.009 (the 4-trailer pad at −4.63, −3.26) is now unmapped scenery —
-  // no label, no highlight.
-  'maposm_buildings011_1_soteria': 'soteria',
-  'maposm_buildings011_2_soteria': 'soteria',
-  'maposm_buildings011_3_soteria': 'soteria',
+  // Soteria Safe Space REMOVED 27/08/2026 (client request) — the artist also
+  // deleted its small cube from the map.osm_buildings.011 geometry, so the
+  // load-time soteria carve in model.js is gone too (only GS is carved now).
   // Medical — node "Cube.005" (mesh Cube.015, 2 prims) → runtime Cube015/_1.
   // NOTE: this node's name also bumps the cafe Cube005_* prims up by one (see FOOD).
   'Cube015':          'medical',
@@ -165,7 +169,12 @@ export const MODEL_MAP = {
   // "ARCO NUCLEUS" building complex.
   'Cube003_1':        'bar-1',
   'Cube003_2':        'bar-1',
-  // bar-2 (BarLocation.001) removed entirely in the 18/08/2026 update.
+  // Oasis bar — new node "BarLocation.001" (mesh Cube.031, 2 prims) in the
+  // 27/08/2026 model, just east of the Durango tents (world −5.12, −0.20).
+  // The node NAME recycles the bar-2 node removed 18/08/2026, but it is new
+  // geometry. Mesh base "Cube031" is unreserved → prims are bare + _1.
+  'Cube031':          'oasis-bar',
+  'Cube031_1':        'oasis-bar',
   // The Shop Bar and Craft Beer — the BOTTOM (southernmost, z −0.52) of the
   // three Durango tents. The top two are the Oasis (see FOOD).
   'Durango_Tent003':  'the-shop-bar',

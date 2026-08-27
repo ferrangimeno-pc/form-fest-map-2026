@@ -244,6 +244,14 @@ const CATEGORY_VIEW_PRESETS = {
     position: { x: -10.94, y: 7.37, z: 4.79 },
     target:   { x: -6.02, y: 1.8, z: -4.34 },
   },
+  // Food (27/08/2026) — spans cafe → the new Food Trucks at the car
+  // campground, so the auto-fit hits the distance cap and drowns in fog.
+  // Solved from Ferran's reference screenshot (rms ~10 px): an east view
+  // looking west, radius ~14.8 — core bottom-left, trucks upper-right.
+  food: {
+    position: { x: 10.095, y: 7.967, z: -1.919 },
+    target:   { x: -3.268, y: 1.8, z: -3.389 },
+  },
 };
 
 /**

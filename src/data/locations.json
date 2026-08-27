@@ -262,8 +262,8 @@
     },
     {
       "id": "slab",
-      "name": "Slab",
-      "category": "hangouts",
+      "name": "The Slab: Bad Jimmy's",
+      "category": "food",
       "pinPosition": {
         "x": -2.45,
         "y": 0.95,
@@ -284,10 +284,6 @@
         {
           "title": "ABOUT",
           "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-          "title": "FEATURING",
-          "body": "Bad Jimmy's"
         }
       ],
       "programming": []
@@ -395,7 +391,7 @@
     },
     {
       "id": "foundry",
-      "name": "Foundry",
+      "name": "Foundry: Otra Pizzeria",
       "category": "food",
       "pinPosition": {
         "x": -4.598,
@@ -417,10 +413,6 @@
         {
           "title": "ABOUT",
           "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-          "title": "FEATURING",
-          "body": "Otra Pizzeria"
         }
       ],
       "programming": []
@@ -443,6 +435,34 @@
         "x": -4.14,
         "y": 2.2,
         "z": 0.33
+      },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "food-trucks",
+      "name": "Food Trucks",
+      "category": "food",
+      "pinPosition": {
+        "x": -9.604,
+        "y": 1.4,
+        "z": -10.573
+      },
+      "cameraTarget": {
+        "x": -9.604,
+        "y": 0,
+        "z": -10.573
+      },
+      "cameraPosition": {
+        "x": -8.254,
+        "y": 2.2,
+        "z": -9.173
       },
       "photo": "",
       "sections": [
@@ -706,34 +726,6 @@
       "programming": []
     },
     {
-      "id": "soteria",
-      "name": "Soteria Safe Space",
-      "category": "guest-services",
-      "pinPosition": {
-        "x": -4.504,
-        "y": 1.5,
-        "z": -2.075
-      },
-      "cameraTarget": {
-        "x": -4.504,
-        "y": 0,
-        "z": -2.075
-      },
-      "cameraPosition": {
-        "x": -3.154,
-        "y": 2.2,
-        "z": -0.675
-      },
-      "photo": "",
-      "sections": [
-        {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        }
-      ],
-      "programming": []
-    },
-    {
       "id": "medical",
       "name": "Medical",
       "category": "guest-services",
@@ -807,6 +799,34 @@
         "x": -4.141,
         "y": 2.2,
         "z": 0.879
+      },
+      "photo": "",
+      "sections": [
+        {
+          "title": "ABOUT",
+          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        }
+      ],
+      "programming": []
+    },
+    {
+      "id": "oasis-bar",
+      "name": "Bar",
+      "category": "bars",
+      "pinPosition": {
+        "x": -5.117,
+        "y": 1.4,
+        "z": -0.199
+      },
+      "cameraTarget": {
+        "x": -5.117,
+        "y": 0,
+        "z": -0.199
+      },
+      "cameraPosition": {
+        "x": -3.767,
+        "y": 2.2,
+        "z": 1.201
       },
       "photo": "",
       "sections": [
