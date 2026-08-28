@@ -18,4 +18,4 @@ The full list of IDs (one per location) is in the repo-root [CONTENT-CHECKLIST.m
 
 After dropping the JPG, open `src/data/locations.json` and update the matching entry's `photo` field from `""` to `"assets/photos/<location-id>.jpg"`.
 
-Until then, the modal shows a "Photo coming soon" placeholder automatically — no breakage if a photo is missing.
+If a location has no photo (`photo: ""`), the modal simply omits the image and shows text only — no breakage if a photo is missing.

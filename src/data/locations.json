@@ -19,39 +19,14 @@
         "y": 2.2,
         "z": 2
       },
-      "photo": "",
+      "photo": "assets/photos/apse.jpg",
       "sections": [
         {
-          "title": "HISTORY",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-          "title": "NEW IN 2026",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+          "title": "",
+          "body": "The Ceramics Apse is Arcosanti's hub for hand-carved ceramic tiles, their designs drawn from the surrounding landscape and architecture. During FORM, it doubles as an intimate performance venue showcasing Spotify’s Fresh Finds artists, its curved concrete shell wrapping sound around the crowd."
         }
       ],
-      "programming": [
-        {
-          "time": "3:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "4:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "5:30PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "7:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "8:30PM",
-          "artist": "ARTIST NAME"
-        }
-      ]
+      "programming": []
     },
     {
       "id": "vaults",
@@ -72,39 +47,14 @@
         "y": 2.2,
         "z": 1.6
       },
-      "photo": "",
+      "photo": "assets/photos/vaults.jpg",
       "sections": [
         {
-          "title": "HISTORY",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-          "title": "NEW IN 2026",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+          "title": "",
+          "body": "Two grand structures with textured surfaces, constructed from concrete poured over shaped earth and adorned with colorful rubber stencils, The Vaults are designed for shade, airflow, and gathering. Home to yoga, meditation, activities and music performances throughout the weekend, The Vaults are cool and breezy by morning and fully immersive after dark."
         }
       ],
-      "programming": [
-        {
-          "time": "3:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "4:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "5:30PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "7:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "8:30PM",
-          "artist": "ARTIST NAME"
-        }
-      ]
+      "programming": []
     },
     {
       "id": "amphitheater",
@@ -125,39 +75,14 @@
         "y": 2.2,
         "z": 1.5
       },
-      "photo": "",
+      "photo": "assets/photos/amphitheater.jpg",
       "sections": [
         {
-          "title": "HISTORY",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices gravida. Risus commodo viverra maecenas accumsan lacus vel facilisis."
-        },
-        {
-          "title": "NEW IN 2026",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+          "title": "",
+          "body": "Our main stage. An open-air amphitheater at the heart of Arcosanti, built by pouring concrete against shaped earth molds for a raw, organic form, and shaded by a sweeping parachute canopy. No bad seats, no VIP sections."
         }
       ],
-      "programming": [
-        {
-          "time": "3:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "4:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "5:30PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "7:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "8:30PM",
-          "artist": "ARTIST NAME"
-        }
-      ]
+      "programming": []
     },
     {
       "id": "pool",
@@ -178,35 +103,18 @@
         "y": 2,
         "z": 1.4
       },
-      "photo": "",
+      "photo": "assets/photos/pool.jpg",
       "sections": [
         {
-          "title": "HISTORY",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-          "title": "NEW IN 2026",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+          "title": "",
+          "body": "Arcosanti's cliffside pool is built into the basalt cliffs and warmed by the sun, with dramatic views out over Valletta Canyon. Open through the day for swimming and daytime DJ sets — capacity is limited, so get there early."
         }
       ],
-      "programming": [
-        {
-          "time": "3:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "4:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "5:30PM",
-          "artist": "ARTIST NAME"
-        }
-      ]
+      "programming": []
     },
     {
       "id": "spotify-lounge",
-      "name": "Spotify Lounge",
+      "name": "Spotify Fan Lounge",
       "category": "hangouts",
       "pinPosition": {
         "x": -2.376,
@@ -223,11 +131,11 @@
         "y": 2,
         "z": 0.104
       },
-      "photo": "",
+      "photo": "assets/photos/spotify-lounge.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Next to our main amphitheater bar, this shaded area will have ample seating and space to relax, have a conversation and enjoy a cocktail throughout the entire weekend."
         }
       ],
       "programming": []
@@ -251,11 +159,11 @@
         "y": 2.2,
         "z": 0.487
       },
-      "photo": "",
+      "photo": "assets/photos/nucleus.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Next to the Vaults, the Nucleus features the Library of Esoterica, plus art workshops and activities throughout the weekend."
         }
       ],
       "programming": []
@@ -279,11 +187,11 @@
         "y": 2,
         "z": 2.4
       },
-      "photo": "",
+      "photo": "assets/photos/slab.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "A sun-warmed concrete patio tucked below the Cafe, between the Foundry and the Pool — Bad Jimmy's is popping up for the weekend with chef-driven, fast-casual burgers made with Arizona beef."
         }
       ],
       "programming": []
@@ -307,11 +215,11 @@
         "y": 2.2,
         "z": 0.78
       },
-      "photo": "",
+      "photo": "assets/photos/rooftop.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Overlooking the main Amphitheater, feel free to watch a show from above or look through a telescope at the stars with one of Phoenix Astronomy Society’s top astronomers from 7-11PM on Saturday and Sunday."
         }
       ],
       "programming": []
@@ -335,31 +243,14 @@
         "y": 2,
         "z": 2.45
       },
-      "photo": "",
+      "photo": "assets/photos/envelop.jpg",
       "sections": [
         {
-          "title": "HISTORY",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-          "title": "NEW IN 2026",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis suspendisse ultrices gravida."
+          "title": "",
+          "body": "Eight points of spatial sound and audio-reactive light transform the otherworldly Arcosanti architecture into an immersive performance space for special sets and shared presence."
         }
       ],
-      "programming": [
-        {
-          "time": "3:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "5:00PM",
-          "artist": "ARTIST NAME"
-        },
-        {
-          "time": "7:00PM",
-          "artist": "ARTIST NAME"
-        }
-      ]
+      "programming": []
     },
     {
       "id": "cafe",
@@ -380,11 +271,11 @@
         "y": 2.2,
         "z": 2.448
       },
-      "photo": "",
+      "photo": "assets/photos/cafe.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "The Arcosanti Cafe, where minimalist interiors meld into the high-desert landscape, serves a themed hot bar and chef-curated meals all weekend long. Sit down, eat together, take in the view."
         }
       ],
       "programming": []
@@ -408,11 +299,11 @@
         "y": 2.2,
         "z": 2.6
       },
-      "photo": "",
+      "photo": "assets/photos/foundry.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Where Cosanti Originals' bronze windbells are made by hand. The Foundry was built using a silt-casting method, providing passive solar warmth in winter and shade in summer. This year, it's home to Otra Pizzeria — a Phoenix-based pizzeria focused on handmade pies with quality ingredients, kept simple."
         }
       ],
       "programming": []
@@ -436,11 +327,11 @@
         "y": 2.2,
         "z": 0.33
       },
-      "photo": "",
+      "photo": "assets/photos/oasis.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "A hub for food and drink behind the Apse stage. Enjoy Sweetgreen or Vegan Social for a bite, The Shop Beer Co., Fidencio Mezcal, and more for something to sip on."
         }
       ],
       "programming": []
@@ -464,11 +355,11 @@
         "y": 2.2,
         "z": -9.173
       },
-      "photo": "",
+      "photo": "assets/photos/food-trucks.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Enjoy breakfast and late-night meals, served up by hand-picked Arizona food trucks right in the campground."
         }
       ],
       "programming": []
@@ -492,18 +383,18 @@
         "y": 4.05,
         "z": 3.06
       },
-      "photo": "",
+      "photo": "assets/photos/shop.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Festival essentials and specialty finds, curated by Phoenix General. Stop by the Lab to shop for artisan jewelry, clothing, zines, an exclusive FORM merch collab, and Arcosanti's handmade Cosanti windbells to take home."
         }
       ],
       "programming": []
     },
     {
       "id": "glamping",
-      "name": "Glamping",
+      "name": "Garden Glamping",
       "category": "camping",
       "pinPosition": {
         "x": -3.987,
@@ -520,11 +411,11 @@
         "y": 2.4,
         "z": -2.19
       },
-      "photo": "",
+      "photo": "assets/photos/glamping.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "A private retreat under the desert sky. Spacious canvas bell tents in Minds Garden, an easy walk from every stage, with a concierge on call and dedicated air-conditioned restroom & shower stations."
         }
       ],
       "programming": []
@@ -548,11 +439,11 @@
         "y": 2.5,
         "z": 0.329
       },
-      "photo": "",
+      "photo": "assets/photos/glamping-rvs.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Step inside to cool, quiet comfort — private RVs, spacious and climate-controlled, an easy walk from every stage, tucked near the Cafe, with a concierge on call and dedicated air-conditioned restroom & shower stations."
         }
       ],
       "programming": []
@@ -576,11 +467,11 @@
         "y": 3.3,
         "z": -7.22
       },
-      "photo": "",
+      "photo": "assets/photos/car-camping.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Pull up, park, and camp right next to your vehicle — camping is now on the main level, about a 10-minute walk to the stages, with no more hiking up and down the canyon. Included with every ticket, with hot showers, potable water, and food trucks nearby for breakfast and late-night meals."
         }
       ],
       "programming": []
@@ -607,8 +498,8 @@
       "photo": "",
       "sections": [
         {
-          "title": "INFO",
-          "body": "Restroom facilities available during festival hours."
+          "title": "",
+          "body": "When nature calls you'll find porta-potties and handwashing stations nearby in the campgrounds, close to stages, and serviced regularly all weekend."
         }
       ],
       "programming": []
@@ -635,8 +526,8 @@
       "photo": "",
       "sections": [
         {
-          "title": "INFO",
-          "body": "Restroom facilities available during festival hours."
+          "title": "",
+          "body": "When nature calls you'll find porta-potties and handwashing stations nearby in the campgrounds, close to stages, and serviced regularly all weekend."
         }
       ],
       "programming": []
@@ -663,8 +554,8 @@
       "photo": "",
       "sections": [
         {
-          "title": "INFO",
-          "body": "Restroom facilities available during festival hours."
+          "title": "",
+          "body": "When nature calls you'll find porta-potties and handwashing stations nearby in the campgrounds, close to stages, and serviced regularly all weekend."
         }
       ],
       "programming": []
@@ -691,8 +582,8 @@
       "photo": "",
       "sections": [
         {
-          "title": "INFO",
-          "body": "Restroom facilities available during festival hours."
+          "title": "",
+          "body": "When nature calls you'll find porta-potties and handwashing stations nearby in the campgrounds, close to stages, and serviced regularly all weekend."
         }
       ],
       "programming": []
@@ -719,8 +610,8 @@
       "photo": "",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Questions, will-call, lost & found, and anything else you need — start here."
         }
       ],
       "programming": []
@@ -747,8 +638,8 @@
       "photo": "",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "First aid and medical staff, here for you around the clock."
         }
       ],
       "programming": []
@@ -772,11 +663,11 @@
         "y": 2.2,
         "z": 0.2
       },
-      "photo": "",
+      "photo": "assets/photos/bar-1.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Complimentary cocktails, beer, wine, non-alcoholic options, and coffee, all free throughout the festival. Enjoy responsibly and have fun."
         }
       ],
       "programming": []
@@ -800,11 +691,11 @@
         "y": 2.2,
         "z": 0.879
       },
-      "photo": "",
+      "photo": "assets/photos/the-shop-bar.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Craft beer and specialty pours from The Shop Beer Co., set up behind the Apse stage next to the Oasis."
         }
       ],
       "programming": []
@@ -828,11 +719,11 @@
         "y": 2.2,
         "z": 1.201
       },
-      "photo": "",
+      "photo": "assets/photos/oasis-bar.jpg",
       "sections": [
         {
-          "title": "ABOUT",
-          "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          "title": "",
+          "body": "Complimentary cocktails, beer, wine, non-alcoholic options, and coffee, all free throughout the festival. Enjoy responsibly and have fun."
         }
       ],
       "programming": []

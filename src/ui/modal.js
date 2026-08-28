@@ -54,19 +54,20 @@ export function openModal(location) {
   // Title
   html += `<h1 class="modal-title">${esc(location.name)}</h1>`;
 
-  // Photo
+  // Photo — locations without one (restrooms, guest services, medical) show text only
   if (location.photo) {
     html += `<img class="modal-photo" src="${esc(location.photo)}" alt="${esc(location.name)}" loading="lazy" />`;
-  } else {
-    html += `<div class="modal-photo" style="display:flex;align-items:center;justify-content:center;color:#999;font-family:var(--font-ui);font-size:0.8rem;">Photo coming soon</div>`;
   }
 
   // Sections
   if (location.sections && location.sections.length > 0) {
     location.sections.forEach((section) => {
+      const title = section.title
+        ? `<h2 class="modal-section-title">${esc(section.title)}</h2>`
+        : '';
       html += `
         <div class="modal-section">
-          <h2 class="modal-section-title">${esc(section.title)}</h2>
+          ${title}
           <p class="modal-section-body">${esc(section.body)}</p>
         </div>
       `;

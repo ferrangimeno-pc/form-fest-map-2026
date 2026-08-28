@@ -123,14 +123,13 @@ Each location entry:
 
 ### Pending client-supplied content
 
-The following are currently placeholder and need to be filled before launch:
+Client content drop of 28/08/2026 delivered final copy for all 26 locations and
+photos for 20 of them (restrooms ×4, guest services, and medical intentionally
+have no photo — the modal shows text only, no placeholder). Still pending:
 
 | Field | Status | Notes |
 |---|---|---|
-| `photo` | Empty (`""`) | All 17 locations show "Photo coming soon". Add JPGs to `public/assets/photos/` and update the path. |
-| `sections[].body` | Lorem ipsum | Needs real copy per location (history, new-in-2026, etc.) |
-| `programming` | Placeholder artists | Needs real artist names and set times |
-| Bars | 2 locations (bar-1, bar-2) | Client to confirm bar names and whether more exist |
+| `programming` | Empty (`[]`) | Stage lineups not announced yet — needs artist names and set times |
 
 **No code changes required** to update any of the above — only `locations.json` and the photo assets.
 
