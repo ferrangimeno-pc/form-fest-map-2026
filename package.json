@@ -2,7 +2,7 @@
   "name": "form-fest-map",
   "version": "1.0.0",
   "description": "Interactive 3D site map for FORM Fest 2026 at Arcosanti — Three.js WebGL, HDRI lighting, category filters, animated water.",
-  "author": "ProductionClub <dev@productionclub.com>",
+  "author": "Production Club",
   "license": "UNLICENSED",
   "private": true,
   "type": "module",

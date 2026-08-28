@@ -6,40 +6,27 @@ Interactive WebGL site map for [experienceform.com](https://www.experienceform.c
 
 ---
 
-## For the Client — What You Need to Provide
+## Updating Content
 
-Everything that needs to come from the client lives in **one file** plus **one folder**. A developer will paste your content into the right place — you don't need to touch code.
+All location content (copy + photos) was delivered and integrated on 28/08/2026 — see [CONTENT-CHECKLIST.md](CONTENT-CHECKLIST.md) for per-location status. The only outstanding content is **stage programming** (artist lineups, not yet announced).
 
-What we need, per location ([CONTENT-CHECKLIST.md](CONTENT-CHECKLIST.md) tracks each one):
+Everything editable lives in **one file** plus **one folder** — no code changes needed:
 
-1. **Photo** — one landscape JPG per location, ~1600×900 ideal, < 300 KB. Filename: `<location-id>.jpg` (the IDs are in the checklist).
-2. **Description copy** — short paragraphs to replace the placeholder text. Sections are typically `HISTORY` + `NEW IN 2026` for stages, `ABOUT` for everything else.
-3. **Programming** (stages only) — list of `time` + `artist` per slot.
-4. **Bar names** — confirm whether `Bar 1` / `Bar 2` should be renamed (e.g. "Sunset Bar", "Vault Bar") and whether more bars exist.
+- **`src/data/locations.json`** — per-location `name`, `photo` path, `sections` (text), and `programming`.
+- **`public/assets/photos/`** — one landscape JPG per location, ~1600×900, < 300 KB, named `<location-id>.jpg` (see the folder's README).
 
-### Example of one fully-filled location
+### Adding programming to a stage
 
 ```json
-{
-  "id": "amphitheater",
-  "name": "Amphitheater",
-  "category": "stages",
-  "photo": "assets/photos/amphitheater.jpg",
-  "sections": [
-    { "title": "HISTORY", "body": "Built in 1972 as part of Paolo Soleri's original Arcosanti vision, the Amphitheater hosts our largest sunset performances under the open sky." },
-    { "title": "NEW IN 2026", "body": "A redesigned soundstage and tiered seating expand capacity to 2,400, with new lighting rigs from Berlin-based studio Fluss." }
-  ],
-  "programming": [
-    { "time": "6:00 PM", "artist": "Caterina Barbieri" },
-    { "time": "8:30 PM", "artist": "Floating Points (live)" },
-    { "time": "11:00 PM", "artist": "Nicolas Jaar" }
-  ]
-}
+"programming": [
+  { "time": "6:00 PM", "artist": "Artist Name" },
+  { "time": "8:30 PM", "artist": "Artist Name" }
+]
 ```
 
-> The `id`, `category`, `pinPosition`, `cameraTarget`, `cameraPosition` fields are technical and **must not be changed by the client** — they control where the building sits on the map.
+An empty `programming: []` simply hides the section. Likewise, a location with `"photo": ""` shows text only — no image, no placeholder.
 
-Send copy/photos as a Google Doc, Notion page, Figma frame, or zip — whatever's easiest. The dev will commit them.
+> The `id`, `category`, `pinPosition`, `cameraTarget`, `cameraPosition` fields are technical and **must not be edited** — they control where the building sits on the map and where the camera flies.
 
 ---
 

@@ -15,3 +15,7 @@ Design UI/
 
 # Local model backups (would otherwise ship in the Vercel build from public/)
 public/assets/model/*.bak*
+
+# Local tooling / internal docs (not part of the handover)
+.claude/
+AUDIT-FINDINGS.md
