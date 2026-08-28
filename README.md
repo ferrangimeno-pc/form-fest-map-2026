@@ -2,31 +2,17 @@
 
 Interactive WebGL site map for [experienceform.com](https://www.experienceform.com/). Built with Three.js — visitors can explore the Arcosanti venue in 3D, filter locations by category, and tap any building to view details, photos, and programming.
 
-**Live preview:** https://form-fest-map-2026.vercel.app/
+**Live site:** https://form-fest-map-2026.vercel.app/
 
----
-
-## Updating Content
-
-All location content (copy + photos) was delivered and integrated on 28/08/2026 — see [CONTENT-CHECKLIST.md](CONTENT-CHECKLIST.md) for per-location status. The only outstanding content is **stage programming** (artist lineups, not yet announced).
-
-Everything editable lives in **one file** plus **one folder** — no code changes needed:
-
-- **`src/data/locations.json`** — per-location `name`, `photo` path, `sections` (text), and `programming`.
-- **`public/assets/photos/`** — one landscape JPG per location, ~1600×900, < 300 KB, named `<location-id>.jpg` (see the folder's README).
-
-### Adding programming to a stage
-
-```json
-"programming": [
-  { "time": "6:00 PM", "artist": "Artist Name" },
-  { "time": "8:30 PM", "artist": "Artist Name" }
-]
-```
-
-An empty `programming: []` simply hides the section. Likewise, a location with `"photo": ""` shows text only — no image, no placeholder.
-
-> The `id`, `category`, `pinPosition`, `cameraTarget`, `cameraPosition` fields are technical and **must not be edited** — they control where the building sits on the map and where the camera flies.
+> ### ⚠️ Pushing to `master` deploys straight to the LIVE site
+>
+> This repo has **no staging environment**. Every push to `master` is automatically
+> built by Vercel and replaces the live site within ~60 seconds — there is no review
+> or approval step in between.
+>
+> Before pushing, always verify your change locally with `npm run dev` (and
+> `npm run build` for anything beyond content edits). To undo a bad deploy:
+> `git revert <commit> && git push` — the previous version is live again a minute later.
 
 ---
 
@@ -85,7 +71,15 @@ The map fills `100dvh` by default. If the host page wraps it in a fixed-height c
 
 ## Updating Content
 
-All location data lives in one file: **`src/data/locations.json`**
+> ⚠️ Reminder: committing content changes to `master` **publishes them to the live
+> site immediately**. Check your edit locally with `npm run dev` first.
+
+All location content (copy + photos) was delivered and integrated on 28/08/2026 — see [CONTENT-CHECKLIST.md](CONTENT-CHECKLIST.md) for per-location status.
+
+Everything editable lives in one file plus one folder — no code changes needed:
+
+- **`src/data/locations.json`** — per-location `name`, `photo` path, `sections` (text), and `programming`.
+- **`public/assets/photos/`** — one landscape JPG per location, ~1600×900, < 300 KB, named `<location-id>.jpg` (see the folder's README).
 
 Each location entry:
 
@@ -118,7 +112,9 @@ have no photo — the modal shows text only, no placeholder). Still pending:
 |---|---|---|
 | `programming` | Empty (`[]`) | Stage lineups not announced yet — needs artist names and set times |
 
-**No code changes required** to update any of the above — only `locations.json` and the photo assets.
+An empty `programming: []` simply hides the schedule section in the modal. Likewise, a location with `"photo": ""` shows text only — no image, no placeholder.
+
+> The `id`, `category`, `pinPosition`, `cameraTarget`, `cameraPosition` fields are technical and **must not be edited** — they control where the building sits on the map and where the camera flies.
 
 ---
 
@@ -232,7 +228,7 @@ npm run build
 
 Output in `dist/` — static files, ready to deploy to any host. Current bundle sizes (gzipped): Three.js chunk ~195 kB (hashed, long-cache-friendly), app chunk ~14 kB, CSS ~4 kB. Only the app chunk changes between content updates.
 
-This repo is connected to Vercel for preview deployments. Push to `master` → auto-deploys in ~60 seconds.
+⚠️ **This repo is connected to Vercel production.** Any push to `master` auto-deploys to the live site (https://form-fest-map-2026.vercel.app/) in ~60 seconds, with no approval step. Verify locally before pushing; roll back with `git revert <commit> && git push`.
 
 ---
 
